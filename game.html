@@ -5,12 +5,20 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title></title>
 		<script type="text/javascript">
+            /**
+             * This is now used instead of setInterval();
+             * It basically calls a function when it's ready, giving the browser time to catch
+             * up if it's lagging behind. Before, with setInterval it would call a function before
+             * it was ready to.
+             */
             var requestAnimationFrame;
             (function() {
               requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                                       window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
               window.requestAnimationFrame = requestAnimationFrame;
             })();
+
+            // Global vars used throughout the game
             var canvas;
             var ctx;
             var playerPosX;
@@ -25,7 +33,13 @@
             var player;
             var players = [];
 
-
+            /**
+             * Standard initialising function
+             * Sets up the canvas context, player position and
+             * creates that player.
+             *
+             * Starts the update function which begins the game
+             */
 			function init() {
 				canvas = document.getElementById('canvas1');
 				ctx = canvas.getContext('2d');
@@ -41,30 +55,44 @@
 			}
 
 
-            // refer to these for scrolling viewport
+            // TODO: refer to these for scrolling viewport
             // http://jsfiddle.net/kmHZt/10/
             // http://jsfiddle.net/hKrrY/
             // http://jsfiddle.net/gfcarv/QKgHs/
 
 
+            /**
+             * This is called every animation frame, checks for new players
+             * If there are, it will add them to the players array and
+             * render will draw them
+             */
             function update() {
                 // get stuff from Cody
                 if (newPlayers()) {
                      players.push(new Player(name,x,y,angle,colour));
                 }
-
-
                 // display that stuff
                 render();
                 // once it has been display, display it again if when it's ready
                 requestAnimationFrame(update);
             }
 
+            /**
+             * This will check Cody's server to see if there are any new players
+             * to add to the local players' map
+             *
+             */
             function newPlayers() {
                 // check for new players from Cody's server
                 return false;
             }
 
+
+            /**
+             * Player object
+             * This will create the other players in the world
+             * The name and positions will be sent through from Cody's server
+             */
             function Player(name,x,y,angle,colour) {
                 this.name = name;
                 this.x = x;
@@ -76,6 +104,12 @@
                 }
             }
 
+            /**
+             *
+             * render function
+             * This is where the canvas is cleared and redrawn every frame
+             * Players positions are updated through here
+             */
             function render() {
                 ctx.clearRect(0,0,canvas.width,canvas.height);
                 ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -85,12 +119,17 @@
                 player.update(moveRate,moveAngle);
 
                 for(i=0;i<players.length;i++) {
-                    players[i].draw();
-                    players[i].update();
+                    // TODO: write this in
+                    //players[i].draw();
+                    //players[i].update();
                 }
 
             }
 
+            /**
+             * Triangle Object
+             * This is for each player on their machine
+             */
             function Triangle() {
 
                 // starting position (could be random from server)
@@ -116,26 +155,38 @@
                     // draw the outline
                     ctx.strokeStyle = playerColour;
                     ctx.stroke();
-                    //
+                    // draw circle on top of the triangle so we know which way it's facing
                     ctx.beginPath();
                     ctx.arc(0,-this.h/2,2,0,Math.PI*2,false);
                     ctx.fillStyle = playerColour;
                     ctx.fill();
                     ctx.closePath();
+                    // return the canvas to how it was
                     ctx.restore();
                 };
+                // update the position of the player/triangle
                 this.update = function(yMovement,angle) {
-                    //
-                    playerPosY+= yMovement;
+                    // change the y position based on the movement and angle
                     this.y += yMovement * Math.cos(angle * Math.PI / 180);
+                    // change the x position based on the movement and angle
                     this.x -= yMovement * Math.sin(angle * Math.PI / 180);
+                    // reset the move rate so it only moves when a key is pressed
                     moveRate = 0;
+                    // set the current angle of the player
                     this.a = angle;
                 };
 
             }
 
+
+            /**
+             * moveTriangle function
+             * Sets up the key event handling
+             * N.B. the event listener is on the <body> tag.
+             * This should probably be moved
+             */
             function moveTriangle(e) {
+
                 keys[e.which] = true;
 
                 for(var key in keys) {
@@ -151,6 +202,7 @@
             }
 
             function deleteKeys(e) {
+                // when key is released, remove it from the array
                 delete keys[e.which];
             }
 
