@@ -4,7 +4,53 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title></title>
-		<script type="text/javascript">
+        <script src="http://192.168.4.42:8080/socket.io/socket.io.js"></script>
+        <script src="store.js"></script>
+        <script>
+
+            var players = {};
+
+            var socket = io.connect('http://192.168.4.42:8080'),
+                    username;
+
+            socket.on('connect', function() {
+                if (! store.get('username')) {
+                    username = prompt('What is your username?');
+                    store.set('username', username);
+                } else {
+                    username = store.get('username');
+                }
+
+                socket.emit('login', username);
+            });
+
+            socket.on('updatePeople', function(people) {
+                for (var key in people) {
+                    if (! people.hasOwnProperty(key)) {
+                        continue;
+                    }
+
+                    if(!people[key].show) {
+                        delete players[key];
+                        continue;
+                    }
+
+                    var p = people[key];
+
+                    if(typeof players[key] === 'undefined') {
+                        var player = new Player(p.coords.x,p.coords.y,p.colour,key);
+                        players[key] = player;
+
+                    } else {
+                        players[key].updateCoords(p.coords.x, p.coords.y);
+                    }
+                }
+            });
+
+            socket.on('updateThem', function (data) {
+                players[data.username].updateCoords(data.coords.x,data.coords.y);
+            });
+
             /**
              * This is now used instead of setInterval();
              * It basically calls a function when it's ready, giving the browser time to catch
@@ -26,12 +72,16 @@
             var triangleSideLength = 20;
             var playerColour = '#ff0000';
             var moveRate = 0;
-            var moveSteps = 2;
+            var moveSteps = 10;
             var moveAngle = 0;
-            var angleSteps = 5;
+            var angleSteps = 10;
             var keys = {};
             var player;
-            var players = [];
+			var imgObj = new Image();
+			imgObj.src = 'desert.jpg';
+			var mapOffsetX = 0;
+            var playerMapPosition;
+            var friction = 10;
 
             /**
              * Standard initialising function
@@ -47,8 +97,7 @@
                 playerPosX = canvas.width / 2;
                 playerPosY = canvas.height / 2;
 
-                player = new Triangle();
-                console.log(player);
+                player = new PlayerSprite();
 
                 // when the browser is ready, we'll send it to update()
                 requestAnimationFrame(update);
@@ -68,13 +117,16 @@
              */
             function update() {
                 // get stuff from Cody
-                if (newPlayers()) {
-                     players.push(new Player(name,x,y,angle,colour));
-                }
+//                if (newPlayers()) {
+//                     players.push(new Player(name,x,y,angle,colour));
+//                }
                 // display that stuff
+
                 render();
+
                 // once it has been display, display it again if when it's ready
                 requestAnimationFrame(update);
+                //setTimeout('update()',1000);
             }
 
             /**
@@ -88,20 +140,50 @@
             }
 
 
+
+
             /**
              * Player object
              * This will create the other players in the world
              * The name and positions will be sent through from Cody's server
              */
-            function Player(name,x,y,angle,colour) {
-                this.name = name;
+            function Player(x,y,colour,id) {
                 this.x = x;
                 this.y = y;
-                this.angle = angle;
                 this.colour = colour;
+                this.username = id;
+                this.lastX = x;
+                this.lastY = y;
+                this.velocity;
+                this.direction;
                 this.draw = function() {
-
-                }
+                    ctx.beginPath();
+                    ctx.arc(this.x,this.y,30,0,Math.PI*2,false);
+                    ctx.fillStyle = this.colour; // add colour here later
+                    ctx.fill();
+                    ctx.closePath();
+                    this.update();
+                };
+                this.updateCoords = function(x,y) {
+                    this.x = x;
+                    this.y = y;
+                };
+				this.update = function() {
+                    if(username == this.username) {
+                        if(this.lastX == this.x && this.lastY == this.y) {
+                            return;
+                        }
+                        socket.emit('updateMe', {
+                            username: username,
+                            player: {
+                                coords: {
+                                    x: this.x,
+                                    y: this.y
+                                }
+                            }
+                        });
+                    }
+				};
             }
 
             /**
@@ -112,28 +194,29 @@
              */
             function render() {
                 ctx.clearRect(0,0,canvas.width,canvas.height);
-                ctx.fillRect(0,0,canvas.width,canvas.height);
-                ctx.fillStyle = '#cecece';
-                ctx.fill();
-                player.draw();
-                player.update(moveRate,moveAngle);
+				ctx.save();
+				ctx.translate(mapOffsetX,0);
+				ctx.drawImage(imgObj,0,0);
+				ctx.restore();
 
-                for(i=0;i<players.length;i++) {
-                    // TODO: write this in
-                    //players[i].draw();
-                    //players[i].update();
+                for(var key in players) {
+                    if (!players.hasOwnProperty(key)) {
+                        continue;
+                    }
+                    players[key].draw();
+
                 }
 
             }
 
             /**
-             * Triangle Object
+             * PlayerSprite Object (Triangle at present)
              * This is for each player on their machine
              */
-            function Triangle() {
+            function PlayerSprite() {
 
                 // starting position (could be random from server)
-                this.h = triangleSideLength * (Math.sqrt(3)/2);
+                this.h = triangleSideLength * (0.866);
                 this.x = playerPosX;
                 this.y = playerPosY;
                 this.a = moveAngle;
@@ -169,11 +252,23 @@
                     // change the y position based on the movement and angle
                     this.y += yMovement * Math.cos(angle * Math.PI / 180);
                     // change the x position based on the movement and angle
-                    this.x -= yMovement * Math.sin(angle * Math.PI / 180);
+
                     // reset the move rate so it only moves when a key is pressed
                     moveRate = 0;
                     // set the current angle of the player
                     this.a = angle;
+
+                    if(this.x > canvas.width - (Math.floor(canvas.width / 4))) {
+                        if(yMovement < 0) {
+                            mapOffsetX-=moveSteps;
+                        }
+                    } else if(this.x < 0 + Math.floor((canvas.width / 4))) {
+                        if(yMovement < 0) {
+                            mapOffsetX+=moveSteps;
+                        }
+                    } else {
+                        this.x -= yMovement * Math.sin(angle * Math.PI / 180);
+                    }
                 };
 
             }
@@ -190,14 +285,34 @@
                 keys[e.which] = true;
 
                 for(var key in keys) {
-                    if(key == 37) // left
+                    if(key == 37) {
+                        var x = players[username].x - moveSteps;
+                        players[username].lastX = players[username].x;
+                        players[username].updateCoords(x,players[username].y); // left
                         moveAngle -= angleSteps;
-                    if(key == 38) // up
-                        moveRate = -moveSteps;
-                    if(key == 39) // right
+                    }
+
+                    if(key == 38) {
+                        var y = players[username].y - moveSteps;
+                        players[username].lastY = players[username].y;
+                        players[username].updateCoords(players[username].x,y);
+                        moveRate = -moveSteps; // up
+                    }
+
+                    if(key == 39) {
+                        var x = players[username].x + moveSteps;
+                        players[username].lastX = players[username].x;
+                        players[username].updateCoords(x,players[username].y); // right
                         moveAngle += angleSteps;
-                    if(key == 40) // down
+                    }
+
+                    if(key == 40) {
+                        var y = players[username].y + moveSteps;
+                        players[username].lastY = players[username].y;
+                        players[username].updateCoords(players[username].x,y); // down
                         moveRate = moveSteps;
+                    }
+
                 }
             }
 
@@ -207,7 +322,11 @@
             }
 
 			window.onload = init;
-			
+
+            function log(blah) {
+                console.log(blah);
+            }
+
 		</script>
 	</head>
 	<body onkeydown="moveTriangle(event)" onkeyup="deleteKeys(event)">
