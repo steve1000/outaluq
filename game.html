@@ -7,6 +7,8 @@
         <script src="http://192.168.4.42:8080/socket.io/socket.io.js"></script>
         <script src="keydrown.js"></script>
         <script src="store.js"></script>
+        <script src="8bit.js"></script>
+        <script src="8bitplay.js"></script>
         <script>
 
             var players = {};
@@ -49,7 +51,6 @@
             });
 
             socket.on('updateThem', function (data) {
-                console.log(data);
                 players[data.username].updateCoords(data.coords.x,data.coords.y,data.direction);
             });
 
@@ -80,11 +81,15 @@
             var keys = {};
             var player;
 			var imgObj = new Image();
-			imgObj.src = 'desert.jpg';
+			imgObj.src = 'barbie.jpg';
 			var mapOffsetX = 0;
 			var mapOffsetY = 0;
             var playerMapPosition;
             var friction = 10;
+            var map = {};
+            map.width = 2000;
+            map.height = 2000;
+
 
             /**
              * Standard initialising function
@@ -99,7 +104,8 @@
 
                 playerPosX = canvas.width / 2;
                 playerPosY = canvas.height / 2;
-
+                // play the music
+                gameMusic.play();
                 // when the browser is ready, we'll send it to update()
                 requestAnimationFrame(update);
 			}
@@ -145,8 +151,17 @@
                 this.lastX = x;
                 this.lastY = y;
                 this.lastDirection = direction;
+                this.mapX = x + Math.abs(mapOffsetX);
+                this.mapY = y + Math.abs(mapOffsetY);
 
                 this.draw = function() {
+                    this.mapX = this.x + Math.abs(mapOffsetX);
+                    this.mapY = this.y + Math.abs(mapOffsetY);
+
+                    document.getElementById('data').innerHTML =  '<br>Player ViewPort X:: ' + this.x;
+                    document.getElementById('data').innerHTML += '<br>Player Map X::::::: ' + this.mapX;
+                    document.getElementById('data').innerHTML += '<br>Player ViewPort Y:: ' + this.y;
+                    document.getElementById('data').innerHTML += '<br>Player Map Y::::::: ' + this.mapY;
 
                     ctx.save();
                     // move to the position of the triangle
@@ -184,60 +199,179 @@
                     }
                     if(username == this.username) {
                         if(yMovement) {
-
                             // reset the move rate so it only moves when a key is pressed
                             moveRate = 0;
                             // move viewport x axis
-                            if(this.x > canvas.width - (Math.floor(canvas.width / 4))) {
+                            if(this.x > canvas.width - (Math.floor(canvas.width / 4)) && Math.abs(mapOffsetX) < map.width - canvas.width) {
                                 // right hand side
                                 if(yMovement < 0) {
                                     if(this.direction > 0 && this.direction < 180) {
-                                        mapOffsetX+=moveSteps;
+                                        if(mapOffsetX > canvas.width - map.width) {
+                                            mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
+                                        } else {
+                                            mapOffsetX = canvas.width - map.width
+                                        }
                                     } else {
                                         this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                     }
-
+                                } else {
+                                    // I'm not allowing for players to reverse into the boundaries for the scrolling viewport... *sigh*
+                                    if(this.direction < 360 && this.direction > 180) {
+                                        if(mapOffsetX > canvas.width - map.width) {
+                                            mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
+                                        } else {
+                                            mapOffsetX = canvas.width - map.width
+                                        }
+                                    } else {
+                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                    }
                                 }
-                            } else if(this.x < 0 + Math.floor((canvas.width / 4))) {
+                            } else if(this.x < 0 + Math.floor((canvas.width / 4)) && mapOffsetX < 0) {
                                 // left hand side
                                 if(yMovement < 0) {
                                     if(this.direction < 360 && this.direction > 180) {
-                                        mapOffsetX-=moveSteps;
+                                        if(mapOffsetX < 0) {
+                                            mapOffsetX -= moveSteps * Math.abs(Math.sin(direction * Math.PI / 180));
+                                        } else {
+                                            mapOffsetX=0;
+                                        }
                                     } else {
                                         this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                     }
-
+                                } else {
+                                    if(this.direction > 0 && this.direction < 180) {
+                                        if(mapOffsetX < 0) {
+                                            mapOffsetX += moveSteps * Math.abs(Math.sin(direction * Math.PI / 180));
+                                        } else {
+                                            mapOffsetX=0;
+                                        }
+                                    } else {
+                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                    }
                                 }
+                            } else if(this.x < this.h/2) {
+                                // if going forward
+                                if(yMovement < 0) {
+                                    if(this.direction < 360 && this.direction > 180) {
+                                        // we've reached the bounds of the map to the left and we don't want to go any further
+                                    } else {
+                                        // change the x position based on the movement and angle
+                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                    }
+                                } else {
+                                    // backward
+                                    if(this.direction > 0 && this.direction < 180) {
+                                        // we've reached the bounds of the map to the left and we don't want to go any further
+                                    } else {
+                                        // change the x position based on the movement and angle
+                                        this.x += yMovement * Math.sin(direction * Math.PI / 180);
+                                    }
+                                }
+
+                            } else if(this.x > canvas.width - this.h/2) {
+                                if(yMovement < 0) {
+                                    if(this.direction > 0 && this.direction < 180) {
+                                        // we've reached the bounds of the map to the right and we don't want to go any further
+                                    } else {
+                                        // change the x position based on the movement and angle
+                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                    }
+                                } else {
+                                    if(this.direction < 360 && this.direction > 180) {
+                                        // we've reached the bounds of the map to the right and we don't want to go any further
+                                    } else {
+                                        // change the x position based on the movement and angle
+                                        this.x += yMovement * Math.sin(direction * Math.PI / 180);
+                                    }
+                                }
+
                             } else {
-                                // change the x position based on the movement and angle
                                 this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                             }
 
-
                             // viewport move y axis
-                            if(this.y > canvas.height - (Math.floor(canvas.height / 4))) {
+                            // bottom
+                            if(this.y > canvas.height - (Math.floor(canvas.height / 4)) && Math.abs(mapOffsetY) < map.height - canvas.height) {
                                 if(yMovement < 0) {
                                     if(this.direction > 90 && this.direction < 270) {
-                                        mapOffsetY+=moveSteps;
+                                        if(mapOffsetY > canvas.height - map.height) {
+                                            mapOffsetY += moveSteps * Math.abs(Math.cos(direction * Math.PI / 180));
+                                        } else {
+                                            mapOffsetY=canvas.height - map.height;
+                                        }
+
                                     } else {
                                         this.y += yMovement * Math.cos(direction * Math.PI / 180);
                                     }
-
+                                } else {
+                                    if(this.direction < 90 || this.direction > 270) {
+                                        if(mapOffsetY > canvas.height - map.height) {
+                                            mapOffsetY -= moveSteps * Math.abs(Math.cos(direction * Math.PI / 180));
+                                        } else {
+                                            mapOffsetY=canvas.height - map.height;
+                                        }
+                                    } else {
+                                        this.y -= yMovement * Math.cos(direction * Math.PI / 180);
+                                    }
                                 }
-                            } else if(this.y < 0 + Math.floor((canvas.height / 4))) {
+                            } else if(this.y < 0 + Math.floor((canvas.height / 4)) && mapOffsetY < 0) {
                                 if(yMovement < 0) {
                                     if(this.direction < 90 || this.direction > 270) {
-                                        mapOffsetY-=moveSteps;
+                                        if(mapOffsetY < 0) {
+                                            mapOffsetY -= moveSteps * Math.cos(direction * Math.PI / 180);
+                                        } else {
+                                            mapOffsetY=0;
+                                        }
                                     } else {
                                         this.y += yMovement * Math.cos(direction * Math.PI / 180);
                                     }
-
+                                } else {
+                                    if(this.direction > 90 && this.direction < 270) {
+                                        if(mapOffsetY < 0) {
+                                            mapOffsetY -= moveSteps * Math.cos(direction * Math.PI / 180);
+                                        } else {
+                                            mapOffsetY=0;
+                                        }
+                                    } else {
+                                        this.y += yMovement * Math.cos(direction * Math.PI / 180);
+                                    }
+                                }
+                            } else if(this.y < this.h/2) {
+                                if(yMovement < 0) {
+                                    if(this.direction < 90 || this.direction > 270) {
+                                        // we've reached the bounds of the map to the top and we don't want to go any further
+                                    } else {
+                                        // change the y position based on the movement and angle
+                                        this.y += yMovement * Math.cos(direction * Math.PI / 180);
+                                    }
+                                } else {
+                                    if(this.direction > 90 && this.direction < 270) {
+                                        // we've reached the bounds of the map to the top and we don't want to go any further
+                                    } else {
+                                        // change the y position based on the movement and angle
+                                        this.y += yMovement * Math.cos(direction * Math.PI / 180);
+                                    }
+                                }
+                            } else if(this.y > canvas.height - this.h/2) {
+                                if(yMovement < 0) {
+                                    if(this.direction > 90 && this.direction < 270) {
+                                        // we've reached the bounds of the map to the bottom and we don't want to go any further
+                                    } else {
+                                        // change the y position based on the movement and angle
+                                        this.y += yMovement * Math.cos(direction * Math.PI / 180);
+                                    }
+                                } else {
+                                    if(this.direction < 90 || this.direction > 270) {
+                                        // we've reached the bounds of the map to the bottom and we don't want to go any further
+                                    } else {
+                                        // change the y position based on the movement and angle
+                                        this.y += yMovement * Math.cos(direction * Math.PI / 180);
+                                    }
                                 }
                             } else {
-                                // change the x position based on the movement and angle
+                                // change the y position based on the movement and angle
                                 this.y += yMovement * Math.cos(direction * Math.PI / 180);
                             }
-
                         }
                     } else {
                         this.x = x;
@@ -290,6 +424,12 @@
 
                 }
 
+//                document.getElementById('data').innerHTML = '<br>mapOffsetX: ' + mapOffsetX;
+//                document.getElementById('data').innerHTML += '<br>mapOffsetY: ' + mapOffsetY;
+//
+//                document.getElementById('data').innerHTML += '<br>Player Map X: ' + mapOffsetX;
+//                document.getElementById('data').innerHTML += '<br>Player Map Y: ' + mapOffsetY;
+
             }
 
             /**
@@ -299,11 +439,8 @@
              * This should probably be moved
              */
 
-
-
-
             kd.LEFT.down(function(){
-                console.log('helo');
+                //console.log('helo');
                 players[username].lastX = players[username].x;
                 players[username].lastDirection = players[username].direction;
                 //moveAngle -= angleSteps;
@@ -326,6 +463,7 @@
                     players[username].direction = players[username].direction - 360;
                 }
                 players[username].updateCoords(players[username].x,players[username].y,players[username].direction); // right
+
             });
 
             kd.UP.down(function(){
@@ -349,7 +487,7 @@
 			window.onload = init;
 
             function log(blah) {
-                console.log(blah);
+                //console.log(blah);
             }
 
 		</script>
@@ -357,6 +495,7 @@
 	<body>
 		<div id="wrap">
 			<canvas width="500" height="500" id="canvas1"></canvas>
+            <span id="data" style="font-family: courier; font-size: 12px;"></span>
 		</div>
 	</body>
 </html>
