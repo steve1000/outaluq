@@ -10,7 +10,31 @@
         <script src="8bit.js"></script>
         <script src="8bitplay.js"></script>
         <script>
-
+			// TODO: collision detection strategy - http://jsfiddle.net/DV9Bw/1/     http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
+		
+		
+            // Global vars used throughout the game
+            var canvas;
+            var ctx;
+            var playerPosX;
+            var playerPosY;
+            var triangleSideLength = 20;
+            var playerColour = '#ff0000';
+            var moveRate = 0;
+            var moveSteps = 5;
+            var moveAngle = 0;
+            var angleSteps = 5;
+            var keys = {};
+            var player;
+            var imgObj = new Image();
+            imgObj.src = 'barbie.jpg';
+            var mapOffsetX = 0;
+            var mapOffsetY = 0;
+            var playerMapPosition;
+            var friction = 10;
+            var map = {};
+            map.width = 2000;
+            map.height = 2000;
             var players = {};
 
             var socket = io.connect('http://192.168.4.42:8080'),
@@ -28,6 +52,7 @@
             });
 
             socket.on('updatePeople', function(people) {
+                console.log(people);
                 for (var key in people) {
                     if (! people.hasOwnProperty(key)) {
                         continue;
@@ -39,6 +64,16 @@
                     }
 
                     var p = people[key];
+					
+					if(key == username) {
+						console.log(people[key].coords.x);
+						console.log(people[key]);
+						
+						mapOffsetX = people[key].coords.vpx;
+						mapOffsetY = people[key].coords.vpy;
+                        p.coords.x += people[key].coords.vpx;
+                        p.coords.y += people[key].coords.vpy;
+					}
 
                     if(typeof players[key] === 'undefined') {
                         var player = new Player(p.coords.x,p.coords.y,p.colour,key, p.direction);
@@ -66,29 +101,6 @@
                                       window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
               window.requestAnimationFrame = requestAnimationFrame;
             })();
-
-            // Global vars used throughout the game
-            var canvas;
-            var ctx;
-            var playerPosX;
-            var playerPosY;
-            var triangleSideLength = 20;
-            var playerColour = '#ff0000';
-            var moveRate = 0;
-            var moveSteps = 5;
-            var moveAngle = 0;
-            var angleSteps = 5;
-            var keys = {};
-            var player;
-			var imgObj = new Image();
-			imgObj.src = 'barbie.jpg';
-			var mapOffsetX = 0;
-			var mapOffsetY = 0;
-            var playerMapPosition;
-            var friction = 10;
-            var map = {};
-            map.width = 2000;
-            map.height = 2000;
 
 
             /**
@@ -151,21 +163,32 @@
                 this.lastX = x;
                 this.lastY = y;
                 this.lastDirection = direction;
-                this.mapX = x + Math.abs(mapOffsetX);
-                this.mapY = y + Math.abs(mapOffsetY);
+                this.mapX = x;
+                this.mapY = y;
 
                 this.draw = function() {
-                    this.mapX = this.x + Math.abs(mapOffsetX);
-                    this.mapY = this.y + Math.abs(mapOffsetY);
-
-                    document.getElementById('data').innerHTML =  '<br>Player ViewPort X:: ' + this.x;
-                    document.getElementById('data').innerHTML += '<br>Player Map X::::::: ' + this.mapX;
-                    document.getElementById('data').innerHTML += '<br>Player ViewPort Y:: ' + this.y;
-                    document.getElementById('data').innerHTML += '<br>Player Map Y::::::: ' + this.mapY;
 
                     ctx.save();
                     // move to the position of the triangle
-                    ctx.translate(this.x,this.y);
+
+                    if(username == this.username) {
+
+                        this.mapY = this.y + Math.abs(mapOffsetY);
+                        this.mapX = this.x + Math.abs(mapOffsetX);
+
+                        ctx.translate(this.x,this.y);
+
+                        document.getElementById('data').innerHTML =  '<br>Player ViewPort X:: ' + this.x;
+                        document.getElementById('data').innerHTML += '<br>Player Map X::::::: ' + this.mapX;
+                        document.getElementById('data').innerHTML += '<br>Player ViewPort Y:: ' + this.y;
+                        document.getElementById('data').innerHTML += '<br>Player Map Y::::::: ' + this.mapY;
+                        document.getElementById('data').innerHTML += '<br>ViewPortOffset X::: ' + mapOffsetX;
+                        document.getElementById('data').innerHTML += '<br>ViewPortOffset Y::: ' + mapOffsetY;
+                    } else {
+                        ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
+
+                    }
+
                     // rotate it based on the keys pressed
                     ctx.rotate(Math.PI / 180 * this.direction);
                     // start our drawing of the triangle
@@ -190,8 +213,10 @@
                     ctx.restore();
 
                     this.update();
+
                 };
                 this.updateCoords = function(x, y, direction) {
+
                     var yMovement;
                     if(typeof direction === 'undefined') {
                         yMovement = x;
@@ -209,7 +234,7 @@
                                         if(mapOffsetX > canvas.width - map.width) {
                                             mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
                                         } else {
-                                            mapOffsetX = canvas.width - map.width
+                                            mapOffsetX = canvas.width - map.width;
                                         }
                                     } else {
                                         this.x -= yMovement * Math.sin(direction * Math.PI / 180);
@@ -220,7 +245,7 @@
                                         if(mapOffsetX > canvas.width - map.width) {
                                             mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
                                         } else {
-                                            mapOffsetX = canvas.width - map.width
+                                            mapOffsetX = canvas.width - map.width;
                                         }
                                     } else {
                                         this.x -= yMovement * Math.sin(direction * Math.PI / 180);
@@ -393,8 +418,10 @@
                             username: username,
                             player: {
                                 coords: {
-                                    x: this.x,
-                                    y: this.y
+                                    x: this.mapX,
+                                    y: this.mapY,
+                                    vpx: mapOffsetX,
+                                    vpy: mapOffsetY
                                 },
                                 direction: this.direction
                             }
@@ -413,6 +440,10 @@
                 ctx.clearRect(0,0,canvas.width,canvas.height);
 				ctx.save();
 				ctx.translate(mapOffsetX,mapOffsetY);
+
+                //ctx.fillStyle = '#ffffff';
+                //ctx.fillRect(50,50,100,100);
+                //ctx.fill();
 				ctx.drawImage(imgObj,0,0);
 				ctx.restore();
 
@@ -440,7 +471,6 @@
              */
 
             kd.LEFT.down(function(){
-                //console.log('helo');
                 players[username].lastX = players[username].x;
                 players[username].lastDirection = players[username].direction;
                 //moveAngle -= angleSteps;
@@ -470,6 +500,7 @@
                 players[username].lastY = players[username].y;
                 moveSteps = Math.abs(moveSteps) * -1;
                 players[username].updateCoords(moveSteps,players[username].direction);
+
             });
 
 
@@ -492,10 +523,11 @@
 
 		</script>
 	</head>
-	<body>
+	<body style="background: #2b2b2b;">
 		<div id="wrap">
 			<canvas width="500" height="500" id="canvas1"></canvas>
-            <span id="data" style="font-family: courier; font-size: 12px;"></span>
+            <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
+            <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
 		</div>
 	</body>
 </html>
