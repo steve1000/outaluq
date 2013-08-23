@@ -33,9 +33,10 @@
             var playerMapPosition;
             var friction = 10;
             var map = {};
-            map.width = 2000;
-            map.height = 2000;
+            map.width = 5000;
+            map.height = 5000;
             var players = {};
+            var mapArray = [];
 
             var socket = io.connect('http://192.168.4.42:8080'),
                     username;
@@ -116,6 +117,7 @@
 
                 playerPosX = canvas.width / 2;
                 playerPosY = canvas.height / 2;
+
                 // play the music
                 gameMusic.play();
                 // when the browser is ready, we'll send it to update()
@@ -588,8 +590,9 @@
 		</script>
 	</head>
 	<body style="background: #2b2b2b;">
-		<div id="wrap">
+		<div id="wrap" style="position: relative;">
 			<canvas width="500" height="500" id="canvas1"></canvas>
+
             <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
             <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
 		</div>
