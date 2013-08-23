@@ -232,23 +232,31 @@
                                 if(yMovement < 0) {
                                     if(this.direction > 0 && this.direction < 180) {
                                         if(mapOffsetX > canvas.width - map.width) {
-                                            mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
+                                            if(moveX(this.x,this.y,yMovement,direction,this.h/2,-1) != 0) {
+                                                mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
+                                            }
                                         } else {
                                             mapOffsetX = canvas.width - map.width;
                                         }
                                     } else {
-                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
+                                        log(1);
                                     }
                                 } else {
                                     // I'm not allowing for players to reverse into the boundaries for the scrolling viewport... *sigh*
                                     if(this.direction < 360 && this.direction > 180) {
                                         if(mapOffsetX > canvas.width - map.width) {
-                                            mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
+                                            if(moveX(this.x,this.y,yMovement,direction,this.h/2,1) != 0) {
+                                                mapOffsetX += moveSteps * Math.sin(direction * Math.PI / 180);
+                                            }
                                         } else {
                                             mapOffsetX = canvas.width - map.width;
                                         }
                                     } else {
-                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
+                                        log(2);
                                     }
                                 }
                             } else if(this.x < 0 + Math.floor((canvas.width / 4)) && mapOffsetX < 0) {
@@ -256,22 +264,30 @@
                                 if(yMovement < 0) {
                                     if(this.direction < 360 && this.direction > 180) {
                                         if(mapOffsetX < 0) {
-                                            mapOffsetX -= moveSteps * Math.abs(Math.sin(direction * Math.PI / 180));
+                                            if(moveX(this.x,this.y,yMovement,direction,this.h/2,1) != 0) {
+                                                mapOffsetX -= moveSteps * Math.abs(Math.sin(direction * Math.PI / 180));
+                                            }
                                         } else {
                                             mapOffsetX=0;
                                         }
                                     } else {
-                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
+                                        log(3);
                                     }
                                 } else {
                                     if(this.direction > 0 && this.direction < 180) {
                                         if(mapOffsetX < 0) {
-                                            mapOffsetX += moveSteps * Math.abs(Math.sin(direction * Math.PI / 180));
+                                            if(moveX(this.x,this.y,yMovement,direction,this.h/2,-1) != 0) {
+                                                mapOffsetX += moveSteps * Math.abs(Math.sin(direction * Math.PI / 180));
+                                            }
                                         } else {
                                             mapOffsetX=0;
                                         }
                                     } else {
-                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
+                                        log(4);
                                     }
                                 }
                             } else if(this.x < this.h/2) {
@@ -281,7 +297,9 @@
                                         // we've reached the bounds of the map to the left and we don't want to go any further
                                     } else {
                                         // change the x position based on the movement and angle
-                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        // this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
+                                        log(5);
                                     }
                                 } else {
                                     // backward
@@ -289,7 +307,9 @@
                                         // we've reached the bounds of the map to the left and we don't want to go any further
                                     } else {
                                         // change the x position based on the movement and angle
-                                        this.x += yMovement * Math.sin(direction * Math.PI / 180);
+                                        //this.x += yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
+                                        log(6);
                                     }
                                 }
                             } else if(this.x > canvas.width - this.h/2) {
@@ -298,21 +318,27 @@
                                         // we've reached the bounds of the map to the right and we don't want to go any further
                                     } else {
                                         // change the x position based on the movement and angle
-                                        this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
+                                        log(7);
                                     }
                                 } else {
                                     if(this.direction < 360 && this.direction > 180) {
                                         // we've reached the bounds of the map to the right and we don't want to go any further
                                     } else {
                                         // change the x position based on the movement and angle
-                                        this.x += yMovement * Math.sin(direction * Math.PI / 180);
+                                        // this.x += yMovement * Math.sin(direction * Math.PI / 180);
+                                        this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
+                                        log(8);
                                     }
                                 }
                             } else {
                                 if(this.direction < 360 && this.direction > 180) {
                                     this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
+                                    log(9);
                                 } else {
                                     this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
+                                    log(10);
                                 }
                             }
                             // viewport move y axis
@@ -321,7 +347,9 @@
                                 if(yMovement < 0) {
                                     if(this.direction > 90 && this.direction < 270) {
                                         if(mapOffsetY > canvas.height - map.height) {
-                                            mapOffsetY += moveSteps * Math.abs(Math.cos(direction * Math.PI / 180));
+                                            if(moveY(this.x,this.y,yMovement,direction,this.h/2,1) != 0) {
+                                                mapOffsetY += moveSteps * Math.abs(Math.cos(direction * Math.PI / 180));
+                                            }
                                         } else {
                                             mapOffsetY=canvas.height - map.height;
                                         }
@@ -332,7 +360,9 @@
                                 } else {
                                     if(this.direction < 90 || this.direction > 270) {
                                         if(mapOffsetY > canvas.height - map.height) {
-                                            mapOffsetY -= moveSteps * Math.abs(Math.cos(direction * Math.PI / 180));
+                                            if(moveY(this.x,this.y,yMovement,direction,this.h/2,-1) != 0) {
+                                                mapOffsetY -= moveSteps * Math.abs(Math.cos(direction * Math.PI / 180));
+                                            }
                                         } else {
                                             mapOffsetY=canvas.height - map.height;
                                         }
@@ -344,7 +374,9 @@
                                 if(yMovement < 0) {
                                     if(this.direction < 90 || this.direction > 270) {
                                         if(mapOffsetY < 0) {
-                                            mapOffsetY -= moveSteps * Math.cos(direction * Math.PI / 180);
+                                            if(moveY(this.x,this.y,yMovement,direction,this.h/2,-1) != 0) {
+                                                mapOffsetY -= moveSteps * Math.cos(direction * Math.PI / 180);
+                                            }
                                         } else {
                                             mapOffsetY=0;
                                         }
@@ -354,7 +386,9 @@
                                 } else {
                                     if(this.direction > 90 && this.direction < 270) {
                                         if(mapOffsetY < 0) {
-                                            mapOffsetY -= moveSteps * Math.cos(direction * Math.PI / 180);
+                                            if(moveY(this.x,this.y,yMovement,direction,this.h/2,1) != 0) {
+                                                mapOffsetY -= moveSteps * Math.cos(direction * Math.PI / 180);
+                                            }
                                         } else {
                                             mapOffsetY=0;
                                         }
@@ -471,6 +505,7 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(150,150,100,100);
                 ctx.fillRect(350,350,50,50);
+                ctx.fillRect(750,750,50,50);
                 ctx.arc(100,350,40,0,Math.PI*2,false);
                 ctx.fill();
 				//ctx.drawImage(imgObj,0,0);
@@ -547,7 +582,7 @@
 			window.onload = init;
 
             function log(blah) {
-                //console.log(blah);
+                console.log(blah);
             }
 
 		</script>
