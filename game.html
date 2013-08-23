@@ -292,7 +292,6 @@
                                         this.x += yMovement * Math.sin(direction * Math.PI / 180);
                                     }
                                 }
-
                             } else if(this.x > canvas.width - this.h/2) {
                                 if(yMovement < 0) {
                                     if(this.direction > 0 && this.direction < 180) {
@@ -309,11 +308,13 @@
                                         this.x += yMovement * Math.sin(direction * Math.PI / 180);
                                     }
                                 }
-
                             } else {
-                                this.x -= yMovement * Math.sin(direction * Math.PI / 180);
+                                if(this.direction < 360 && this.direction > 180) {
+                                    this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
+                                } else {
+                                    this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
+                                }
                             }
-
                             // viewport move y axis
                             // bottom
                             if(this.y > canvas.height - (Math.floor(canvas.height / 4)) && Math.abs(mapOffsetY) < map.height - canvas.height) {
@@ -394,8 +395,11 @@
                                     }
                                 }
                             } else {
-                                // change the y position based on the movement and angle
-                                this.y += yMovement * Math.cos(direction * Math.PI / 180);
+                                if(this.direction > 90 && this.direction < 270) {
+                                    this.y += moveY(this.x,this.y,yMovement,direction,this.h/2,1);
+                                } else {
+                                    this.y += moveY(this.x,this.y,yMovement,direction,this.h/2,-1);
+                                }
                             }
                         }
                     } else {
@@ -430,6 +434,29 @@
 				};
             }
 
+            function moveX(x,y,step,angle,height,multiplier) {
+                blahX = x;
+                blahX -= step * Math.sin(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
+                var p = ctx.getImageData(blahX, y, 1, 1).data;
+                if(p[0] == 255) {
+                    return 0;
+                } else {
+                    return step * Math.sin(angle * Math.PI / 180);
+                }
+            }
+
+            function moveY(x,y,step,angle,height,multiplier) {
+                blahY = y;
+                blahY += step * Math.cos(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
+                var p = ctx.getImageData(x, blahY, 1, 1).data;
+                if(p[0] == 255) {
+                    return 0;
+                } else {
+                    return step * Math.cos(angle * Math.PI / 180);
+                }
+            }
+
+
             /**
              *
              * render function
@@ -441,10 +468,12 @@
 				ctx.save();
 				ctx.translate(mapOffsetX,mapOffsetY);
 
-                //ctx.fillStyle = '#ffffff';
-                //ctx.fillRect(50,50,100,100);
-                //ctx.fill();
-				ctx.drawImage(imgObj,0,0);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(150,150,100,100);
+                ctx.fillRect(350,350,50,50);
+                ctx.arc(100,350,40,0,Math.PI*2,false);
+                ctx.fill();
+				//ctx.drawImage(imgObj,0,0);
 				ctx.restore();
 
                 for(var key in players) {
