@@ -11,8 +11,7 @@
         <script src="8bitplay.js"></script>
         <script>
 			// TODO: collision detection strategy - http://jsfiddle.net/DV9Bw/1/     http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
-		
-		
+
             // Global vars used throughout the game
             var canvas;
             var ctx;
@@ -37,6 +36,10 @@
             map.height = 5000;
             var players = {};
             var mapArray = [];
+            var startTime = Date.now();
+            var lastScoreDisplayedTime = 0;
+            var lastScoreDisplayed;
+            var luck = 100;
 
             var socket = io.connect('http://192.168.4.42:8080'),
                     username;
@@ -53,7 +56,6 @@
             });
 
             socket.on('updatePeople', function(people) {
-                console.log(people);
                 for (var key in people) {
                     if (! people.hasOwnProperty(key)) {
                         continue;
@@ -67,9 +69,6 @@
                     var p = people[key];
 					
 					if(key == username) {
-						console.log(people[key].coords.x);
-						console.log(people[key]);
-						
 						mapOffsetX = people[key].coords.vpx;
 						mapOffsetY = people[key].coords.vpy;
                         p.coords.x += people[key].coords.vpx;
@@ -87,8 +86,10 @@
             });
 
             socket.on('updateThem', function (data) {
-                players[data.username].updateCoords(data.coords.x,data.coords.y,data.direction);
+                players[data.username].updateCoords(data.coords.x,data.coords.y,data.direction,data.luck);
             });
+
+
 
             /**
              * This is now used instead of setInterval();
@@ -167,6 +168,7 @@
                 this.lastDirection = direction;
                 this.mapX = x;
                 this.mapY = y;
+                this.luck = null;
 
                 this.draw = function() {
 
@@ -180,13 +182,14 @@
 
                         ctx.translate(this.x,this.y);
 
-                        document.getElementById('data').innerHTML =  '<br>Player ViewPort X:: ' + this.x;
-                        document.getElementById('data').innerHTML += '<br>Player Map X::::::: ' + this.mapX;
-                        document.getElementById('data').innerHTML += '<br>Player ViewPort Y:: ' + this.y;
-                        document.getElementById('data').innerHTML += '<br>Player Map Y::::::: ' + this.mapY;
-                        document.getElementById('data').innerHTML += '<br>ViewPortOffset X::: ' + mapOffsetX;
-                        document.getElementById('data').innerHTML += '<br>ViewPortOffset Y::: ' + mapOffsetY;
+//                        document.getElementById('data').innerHTML =  '<br>Player ViewPort X:: ' + this.x;
+//                        document.getElementById('data').innerHTML += '<br>Player Map X::::::: ' + this.mapX;
+//                        document.getElementById('data').innerHTML += '<br>Player ViewPort Y:: ' + this.y;
+//                        document.getElementById('data').innerHTML += '<br>Player Map Y::::::: ' + this.mapY;
+//                        document.getElementById('data').innerHTML += '<br>ViewPortOffset X::: ' + mapOffsetX;
+//                        document.getElementById('data').innerHTML += '<br>ViewPortOffset Y::: ' + mapOffsetY;
                     } else {
+                        // everyone else
                         ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
 
                     }
@@ -211,14 +214,25 @@
                     ctx.fillStyle = this.colour;
                     ctx.fill();
                     ctx.closePath();
+
+                    if(username != this.username) {
+
+                        var r = 255 - (255 * (this.luck / 100));
+                        var g = 255 * (this.luck / 100);
+                        var b = 0;
+                        ctx.beginPath();
+                        ctx.fillStyle = 'rgb('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+')';
+                        ctx.fillRect(this.h/2,0,3,-this.luck/6);
+                        ctx.closePath();
+                    }
+
                     // return the canvas to how it was
                     ctx.restore();
 
                     this.update();
 
                 };
-                this.updateCoords = function(x, y, direction) {
-
+                this.updateCoords = function(x, y, direction, luck) {
                     var yMovement;
                     if(typeof direction === 'undefined') {
                         yMovement = x;
@@ -441,6 +455,8 @@
                     } else {
                         this.x = x;
                         this.y = y;
+                        this.luck = luck;
+
                     }
                     this.direction = direction;
                 };
@@ -492,7 +508,32 @@
                 }
             }
 
+            function displayScore() {
 
+                var score = 'Score: ' + (Date.now() - startTime);
+
+                if(Date.now() - lastScoreDisplayedTime > 500) {
+                    lastScoreDisplayedTime = Date.now();
+                } else{
+                    score = lastScoreDisplayed;
+                }
+
+                var scoreOffsetX = canvas.width - 10;
+                ctx.beginPath();
+                ctx.fillStyle = 'white';
+                ctx.fillText(score,scoreOffsetX,20);
+                ctx.font = '20px Lucida Console';
+                ctx.textAlign = 'right';
+                ctx.closePath();
+                lastScoreDisplayed = score;
+            }
+            function displayLuck() {
+                var r = 255 - (255 * (luck / 100));
+                var g = 255 * (luck / 100);
+                var b = 0;
+                ctx.fillStyle = 'rgb('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+')';
+                ctx.fillRect(10,10,canvas.width * (luck / 400),20);
+            }
             /**
              *
              * render function
@@ -501,6 +542,9 @@
              */
             function render() {
                 ctx.clearRect(0,0,canvas.width,canvas.height);
+
+                ctx.fillStyle = "#181818";
+                ctx.fillRect(0,0,canvas.width,canvas.height);
 				ctx.save();
 				ctx.translate(mapOffsetX,mapOffsetY);
 
@@ -512,14 +556,17 @@
                 ctx.fill();
 				//ctx.drawImage(imgObj,0,0);
 				ctx.restore();
-
                 for(var key in players) {
                     if (!players.hasOwnProperty(key)) {
                         continue;
                     }
                     players[key].draw();
-
                 }
+
+
+
+                displayScore();
+                displayLuck();
 
 //                document.getElementById('data').innerHTML = '<br>mapOffsetX: ' + mapOffsetX;
 //                document.getElementById('data').innerHTML += '<br>mapOffsetY: ' + mapOffsetY;
@@ -571,9 +618,13 @@
 
 
             kd.DOWN.down(function(){
-                players[username].lastY = players[username].y;
-                moveSteps = Math.abs(moveSteps);
-                players[username].updateCoords(moveSteps,players[username].direction);
+                // N.B. I've taken the down button out of the controls for the moment
+                // because it was causing a bit of havoc and unneeded code for the collision
+                // detection
+
+//                players[username].lastY = players[username].y;
+//                moveSteps = Math.abs(moveSteps);
+//                players[username].updateCoords(moveSteps,players[username].direction);
             });
 
             // This update loop is the heartbeat of Keydrown
@@ -584,14 +635,14 @@
 			window.onload = init;
 
             function log(blah) {
-                console.log(blah);
+                //console.log(blah);
             }
 
 		</script>
 	</head>
 	<body style="background: #2b2b2b;">
 		<div id="wrap" style="position: relative;">
-			<canvas width="500" height="500" id="canvas1"></canvas>
+			<canvas width="1000" height="500" id="canvas1"></canvas>
 
             <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
             <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
