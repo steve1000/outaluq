@@ -9,6 +9,7 @@
         <script src="store.js"></script>
         <script src="8bit.js"></script>
         <script src="8bitplay.js"></script>
+        <script src="../audio/gamesounds.js"></script>
         <script>
 			// TODO: collision detection strategy - http://jsfiddle.net/DV9Bw/1/     http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
 
@@ -84,6 +85,7 @@
                 switch (data.type) {
                     case 'pulse' :
                         pulses.push(new Pulse(data.data.mapX,data.data.mapY));
+                        gameSounds.triggerSound('pulse', data.data.mapX, data.data.mapY);
                         break;
                 }
             });
@@ -543,6 +545,8 @@
                             },
                             direction: this.direction
                         });
+
+                        gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
                     }
 				};
                 this.updatePlayerState = function(data,isMe) {
@@ -724,6 +728,7 @@
                 // trigger pulse for player
                 pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY));
                 playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY} });
+                gameSounds.triggerSound('pulse', players[socketId].mapX, players[socketId].mapY);
             });
 
             // This update loop is the heartbeat of Keydrown
