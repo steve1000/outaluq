@@ -157,7 +157,7 @@
                 playerPosY = canvas.height / 2;
 
                 // play the music
-//                gameMusic.play();
+                gameMusic.play();
                 // when the browser is ready, we'll send it to update()
                 requestAnimationFrame(update);
 			}
@@ -546,12 +546,7 @@
                             direction: this.direction
                         });
 
-                        var normalisedDirection = 1 - this.direction/180;
-
-                        console.log(normalisedDirection, this.mapX,this.mapY);
-
                         gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
-                        gameSounds.ac.listener.setOrientation(0, -1, 0, 0, 1, 0); //up vector is always 0, 1, 0
                     }
 				};
                 this.updatePlayerState = function(data,isMe) {
