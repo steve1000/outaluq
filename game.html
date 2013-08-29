@@ -85,7 +85,7 @@
                 switch (data.type) {
                     case 'pulse' :
                         pulses.push(new Pulse(data.data.mapX,data.data.mapY));
-                        gameSounds.triggerSound('pulse', data.data.mapX, data.data.mapY);
+                        gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
                         break;
                 }
             });
@@ -637,12 +637,12 @@
             function render() {
                 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-                ctx.fillStyle = "#181818";
-                ctx.fillRect(0,0,canvas.width,canvas.height);
+                displayPulses();
+
 				ctx.save();
 				ctx.translate(mapOffsetX,mapOffsetY);
                 ctx.beginPath();
-                ctx.fillStyle = 'ffffff';
+                ctx.fillStyle = 'f3f3f3';
                 ctx.fillRect(150,150,100,100);
                 ctx.fillRect(350,350,50,50);
                 ctx.fillRect(750,750,50,50);
@@ -651,8 +651,6 @@
                 ctx.closePath();
 				//ctx.drawImage(imgObj,0,0);
 				ctx.restore();
-
-                displayPulses();
 
                 for(var key in players) {
                     if (!players.hasOwnProperty(key)) {
@@ -728,7 +726,7 @@
                 // trigger pulse for player
                 pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY));
                 playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY} });
-                gameSounds.triggerSound('pulse', players[socketId].mapX, players[socketId].mapY);
+                gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
             });
 
             // This update loop is the heartbeat of Keydrown
