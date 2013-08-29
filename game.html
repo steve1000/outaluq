@@ -105,7 +105,7 @@
                             removeWorldItem(pos);
                         }));
 
-                        //gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
+                        gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
                         break;
                 }
             });
@@ -591,7 +591,7 @@
                             direction: this.direction
                         });
 
-                        //gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
+                        gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
                     }
 				};
                 this.updatePlayerState = function(data,isMe) {
@@ -774,7 +774,7 @@
                 // trigger pulse for player
                 pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY,players[socketId].colour));
                 playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
-                //gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
+                gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
             });
 
             // This update loop is the heartbeat of Keydrown
