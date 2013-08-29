@@ -46,10 +46,8 @@
             var socket = io.connect('http://192.168.4.42:8080'),
                     username;
             var people;
-            var worldObjects = [];
+            var worldItems = [];
             var colourCollisionRange = 4;
-
-            socket
 
             socket.on('connect', function() {
                 if (! store.get('username')) {
@@ -88,7 +86,7 @@
             socket.on('worldEvents', function (data) {
                 switch (data.type) {
                     case 'pulse' :
-                        pulses.push(new Pulse(data.data.mapX,data.data.mapY));
+                        pulses.push(new Pulse(data.data.mapX,data.data.mapY,data.data.colour));
                         gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
                         break;
                 }
@@ -196,14 +194,14 @@
 
             function findObjectICollidedWith(coloursArray) {
                 // loop through each worldItems array and check for the 3 matching colour values within a range of 4 either side
-                for(var i=0;i<worldObjects.length;i++) {
+                for(var i=0;i<worldItems.length;i++) {
                     if(
                         (coloursArray[0] < worldObjects[i]['r'] + colourCollisionRange && coloursArray[0] > worldObjects[i]['r'] - colourCollisionRange) &&
                         (coloursArray[1] < worldObjects[i]['g'] + colourCollisionRange && coloursArray[1] > worldObjects[i]['g'] - colourCollisionRange)
                         (coloursArray[2] < worldObjects[i]['b'] + colourCollisionRange && coloursArray[2] > worldObjects[i]['b'] - colourCollisionRange)
                     ) {
                         // we have a hit
-                        return worldObjects[i];
+                        return worldItems[i];
                     }
                 }
                 return false;
@@ -217,13 +215,14 @@
              */
 
 
-            function Pulse(px,py) {
+            function Pulse(px,py,colour) {
                 var pulse = {
                     transparency: 0.8,
                     lineWidth: 2,
                     myx: 2,
                     px: px,
                     py: py,
+                    colour: colour,
                     draw: function() {
                         var lw = ctx.lineWidth;
                         var ss = ctx.strokeStyle;
@@ -232,7 +231,7 @@
                         ctx.translate(this.px + mapOffsetX,this.py + mapOffsetY);
                         ctx.beginPath();
                         ctx.lineWidth = this.lineWidth;
-                        ctx.strokeStyle = "rgba(34,151,204,"+ this.transparency +")";
+                        ctx.strokeStyle = "rgba(" + this.colour +","+ this.transparency +")";
                         ctx.fillStyle = 'transparent';
                         ctx.arc(0, 0, this.myx*1.5, 0, Math.PI*2, false);
                         ctx.stroke();
@@ -298,16 +297,16 @@
                     ctx.lineTo(-triangleSideLength/2, this.h/2);
                     ctx.lineTo(triangleSideLength/2,this.h/2);
                     ctx.lineTo(0,-this.h/2);
-                    ctx.fillStyle = this.colour;
+                    ctx.fillStyle = 'rgb(' + this.colour + ')';
                     ctx.fill();
                     ctx.closePath();
                     // draw the outline
-                    ctx.strokeStyle = this.colour;
+                    ctx.strokeStyle = 'rgb(' + this.colour + ')';
                     ctx.stroke();
                     // draw circle on top of the triangle so we know which way it's facing
                     ctx.beginPath();
                     ctx.arc(0,-this.h/2,2,0,Math.PI*2,false);
-                    ctx.fillStyle = this.colour;
+                    ctx.fillStyle = 'rgb(' + this.colour + ')';
                     ctx.fill();
                     ctx.closePath();
 
@@ -755,8 +754,8 @@
 
             kd.P.up(function(){
                 // trigger pulse for player
-                pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY));
-                playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY} });
+                pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY,players[socketId].colour));
+                playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
                 gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
             });
 
