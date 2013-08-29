@@ -284,14 +284,17 @@
                     ctx.closePath();
 
                     if(socketId != this.socketId) {
-
+                        // other players' luck bar
                         var r = 255 - (255 * (this.luck / 100));
                         var g = 255 * (this.luck / 100);
                         var b = 0;
-                        ctx.beginPath();
-                        ctx.fillStyle = 'rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.9)';
-                        ctx.fillRect(this.h/2,0,3,-this.luck/6);
-                        ctx.closePath();
+                        if(this.luck > 0) {
+                            ctx.beginPath();
+                            ctx.fillStyle = 'rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.9)';
+                            ctx.fillRect(this.h/2,0,3,-this.luck/6);
+                            ctx.closePath();
+                        }
+
                     }
 
                     // return the canvas to how it was
@@ -642,7 +645,7 @@
 				ctx.save();
 				ctx.translate(mapOffsetX,mapOffsetY);
                 ctx.beginPath();
-                ctx.fillStyle = 'f3f3f3';
+                ctx.fillStyle = 'ffffff';
                 ctx.fillRect(150,150,100,100);
                 ctx.fillRect(350,350,50,50);
                 ctx.fillRect(750,750,50,50);
