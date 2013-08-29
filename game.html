@@ -285,14 +285,14 @@
                 this.draw = function() {
 
                     // have I been hit?
-                    var p = ctx.getImageData(this.x, this.y, 1, 1).data;
+                    // var p = ctx.getImageData(this.x, this.y, 1, 1).data;
 
-                    var collidedObject = findObjectICollidedWith(p);
+                    // var collidedObject = findObjectICollidedWith(p);
 
-                    if(collidedObject !== false) {
+                    //if(collidedObject !== false) {
                         // we hit something... let's return that object to cody
-                        playerEvent({type: 'hit', data: collidedObject });
-                    }
+                    //    playerEvent({type: 'hit', data: collidedObject });
+                    //}
 
                     ctx.save();
                     // move to the position of the triangle
