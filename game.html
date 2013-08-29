@@ -46,6 +46,10 @@
             var socket = io.connect('http://192.168.4.42:8080'),
                     username;
             var people;
+            var worldObjects = [];
+            var colourCollisionRange = 4;
+
+            socket
 
             socket.on('connect', function() {
                 if (! store.get('username')) {
@@ -188,6 +192,24 @@
                 //setTimeout('update()',1000);
             }
 
+
+
+            function findObjectICollidedWith(coloursArray) {
+                // loop through each worldItems array and check for the 3 matching colour values within a range of 4 either side
+                for(var i=0;i<worldObjects.length;i++) {
+                    if(
+                        (coloursArray[0] < worldObjects[i]['r'] + colourCollisionRange && coloursArray[0] > worldObjects[i]['r'] - colourCollisionRange) &&
+                        (coloursArray[1] < worldObjects[i]['g'] + colourCollisionRange && coloursArray[1] > worldObjects[i]['g'] - colourCollisionRange)
+                        (coloursArray[2] < worldObjects[i]['b'] + colourCollisionRange && coloursArray[2] > worldObjects[i]['b'] - colourCollisionRange)
+                    ) {
+                        // we have a hit
+                        return worldObjects[i];
+                    }
+                }
+                return false;
+            }
+
+
             /**
              * Player object
              * This will create the other players in the world
@@ -199,7 +221,7 @@
                 var pulse = {
                     transparency: 0.8,
                     lineWidth: 2,
-                    myx: 0,
+                    myx: 2,
                     px: px,
                     py: py,
                     draw: function() {
@@ -210,7 +232,7 @@
                         ctx.translate(this.px + mapOffsetX,this.py + mapOffsetY);
                         ctx.beginPath();
                         ctx.lineWidth = this.lineWidth;
-                        ctx.strokeStyle = "rgba(31,151,204,"+ this.transparency +")";
+                        ctx.strokeStyle = "rgba(34,151,204,"+ this.transparency +")";
                         ctx.fillStyle = 'transparent';
                         ctx.arc(0, 0, this.myx*1.5, 0, Math.PI*2, false);
                         ctx.stroke();
@@ -245,9 +267,15 @@
 
                     // have I been hit?
                     var p = ctx.getImageData(this.x, this.y, 1, 1).data;
-                    if(p[3] < 255 && p[3] > 0) {
+
+                    if(findObjectICollidedWith(p)) {
+                        // we hit something... let's return that object to cody
+
+                    }
+
+                    if(p[0] < 255 && p[3] > 0) {
                         playerEvent({type: 'pulseHit'});
-                        console.log(p);
+                        console.warn(p);
                     } else {
 
                     }
