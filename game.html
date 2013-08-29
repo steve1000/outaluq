@@ -83,10 +83,28 @@
 
             });
 
+            function addWorldItem(type,colour) {
+
+                worldItems.push({
+                    type: type,
+                    colour: colour.split(',')
+                });
+
+                return worldItems.length;
+
+            }
+
+            function removeWorldItem(pos) {
+                worldItems = worldItems.splice(pos,1);
+            }
             socket.on('worldEvents', function (data) {
                 switch (data.type) {
                     case 'pulse' :
-                        pulses.push(new Pulse(data.data.mapX,data.data.mapY,data.data.colour));
+                        var pos = addWorldItem(data.type,data.data.colour);
+                        pulses.push(new Pulse(data.data.mapX,data.data.mapY,data.data.colour, function(){
+                            removeWorldItem(pos);
+                        }));
+
                         gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
                         break;
                 }
@@ -195,10 +213,11 @@
             function findObjectICollidedWith(coloursArray) {
                 // loop through each worldItems array and check for the 3 matching colour values within a range of 4 either side
                 for(var i=0;i<worldItems.length;i++) {
+
                     if(
-                        (coloursArray[0] < worldObjects[i]['r'] + colourCollisionRange && coloursArray[0] > worldObjects[i]['r'] - colourCollisionRange) &&
-                        (coloursArray[1] < worldObjects[i]['g'] + colourCollisionRange && coloursArray[1] > worldObjects[i]['g'] - colourCollisionRange)
-                        (coloursArray[2] < worldObjects[i]['b'] + colourCollisionRange && coloursArray[2] > worldObjects[i]['b'] - colourCollisionRange)
+                        (coloursArray[0] < worldItems[i].colour[0] + colourCollisionRange && coloursArray[0] > worldItems[i].colour[0] - colourCollisionRange) &&
+                        (coloursArray[1] < worldItems[i].colour[1] + colourCollisionRange && coloursArray[1] > worldItems[i].colour[1] - colourCollisionRange) &&
+                        (coloursArray[2] < worldItems[i].colour[2] + colourCollisionRange && coloursArray[2] > worldItems[i].colour[2] - colourCollisionRange)
                     ) {
                         // we have a hit
                         return worldItems[i];
@@ -215,7 +234,7 @@
              */
 
 
-            function Pulse(px,py,colour) {
+            function Pulse(px,py,colour,cb) {
                 var pulse = {
                     transparency: 0.8,
                     lineWidth: 2,
@@ -240,7 +259,8 @@
                         ctx.strokeStyle = ss;
                         ctx.fillStyle = fs;
                         ctx.restore();
-                    }
+                    },
+                    cb: cb
                 }
                 return pulse;
             }
@@ -267,16 +287,11 @@
                     // have I been hit?
                     var p = ctx.getImageData(this.x, this.y, 1, 1).data;
 
-                    if(findObjectICollidedWith(p)) {
+                    var collidedObject = findObjectICollidedWith(p);
+
+                    if(collidedObject !== false) {
                         // we hit something... let's return that object to cody
-
-                    }
-
-                    if(p[0] < 255 && p[3] > 0) {
-                        playerEvent({type: 'pulseHit'});
-                        console.warn(p);
-                    } else {
-
+                        playerEvent({type: 'hit', data: collidedObject });
                     }
 
                     ctx.save();
@@ -654,6 +669,9 @@
                     pulses[i].lineWidth += 0.05;
 
                     if(pulses[i].transparency < 0.02) {
+                        if(typeof pulses[i].cb !== 'undefined') {
+                            pulses[i].cb();
+                        }
                         pulses.splice(0,1);
                     }
                 }
