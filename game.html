@@ -27,8 +27,6 @@
             var keys = {};
             var player;
             var pulses = [];
-            var imgObj = new Image();
-            imgObj.src = 'barbie.jpg';
             var mapOffsetX = 0;
             var mapOffsetY = 0;
             var playerMapPosition;
@@ -48,6 +46,10 @@
             var people;
             var worldItems = [];
             var colourCollisionRange = 4;
+            var ded = false;
+            var globalScoreThatJarredWillNeedToRefactor;
+            var items = [];
+            var myItems = [];
 
             socket.on('connect', function() {
                 if (! store.get('username')) {
@@ -59,14 +61,15 @@
 
                 var loginObject = {
                     username: username,
-                    socketId: socketId
+                    socketId: socketId,
+                    version: '0.0.1'
                 }
 
                 socket.emit('connect', loginObject);
             });
 
             socket.on('updateOtherPlayers', function (data) {
-//                console.log(data);
+//                log(data);
                 switch (data.type) {
                     case 'moved' :
                         players[data.socketId].updateCoords(data.data.coords.x,data.data.coords.y,data.data.direction);
@@ -78,7 +81,11 @@
                         delete players[data.socketId];
                         break;
                     case 'playerJoined' :
-                        players[data.socketId] = new Player(data.data.coords.x,data.data.coords.y,data.data.colour,data.data.socketId, data.data.direction, data.data.username);;
+                        players[data.socketId] = new Player(data.data.coords.x,data.data.coords.y,data.data.colour,data.data.socketId, data.data.direction, data.data.username,data.data.luck);
+                        break;
+                    case 'dead' :
+                        delete players[data.socketId];
+                        break;
                 }
 
             });
@@ -110,18 +117,27 @@
                 }
             });
 
+            socket.on('updateItems',function(data){
+                log('yo got items dawg');
+                items = data;
+            });
+
 
             // update player
             socket.on('updatePlayer',function (data) {
                 // Cody is sending through a type which we'll see what we need to do with it
                 switch (data.type) {
                     case 'initialise' :
-                            initialise(data);
+                        initialise(data);
                         break;
                     case 'luckUpdate' :
                         players[data.socketId].updatePlayerState(data,true);
                         break;
+                    case 'updateItems' :
+                        myItems.push(data);
+                        break;
                     case 'dead' :
+                        ded = true;
                         // TODO: reset score to 0
                         // Show a screen with scores and show a button that has 'Retry'
                         break;
@@ -144,8 +160,8 @@
                         p.coords.x += people[key].coords.vpx;
                         p.coords.y += people[key].coords.vpy;
                     }
-                    //console.log('socketId: ' + key);
-                    players[key] = new Player(p.coords.x,p.coords.y,p.colour,key, p.direction, p.username);
+                    //log('socketId: ' + key);
+                    players[key] = new Player(p.coords.x,p.coords.y,p.colour,key, p.direction, p.username, p.luck);
                 }
             }
 
@@ -182,30 +198,15 @@
                 requestAnimationFrame(update);
 			}
 
-
-            // TODO: refer to these for scrolling viewport
-            // http://jsfiddle.net/kmHZt/10/
-            // http://jsfiddle.net/hKrrY/
-            // http://jsfiddle.net/gfcarv/QKgHs/
-
-
             /**
              * This is called every animation frame, checks for new players
              * If there are, it will add them to the players array and
              * render will draw them
              */
             function update() {
-                // get stuff from Cody
-//                if (newPlayers()) {
-//                     players.push(new Player(name,x,y,angle,colour));
-//                }
-                // display that stuff
-
                 render();
-
                 // once it has been display, display it again if when it's ready
                 requestAnimationFrame(update);
-                //setTimeout('update()',1000);
             }
 
 
@@ -266,7 +267,8 @@
             }
 
 
-            function Player(x,y,colour,id,direction,screenName) {
+            function Player(x,y,colour,id,direction,screenName,playerLuck) {
+
                 var self = this;
                 this.x = x;
                 this.y = y;
@@ -279,20 +281,31 @@
                 this.lastDirection = direction;
                 this.mapX = x;
                 this.mapY = y;
-                this.luck = null;
+                this.luck = playerLuck;
                 this.socketId = id;
 
                 this.draw = function() {
 
                     // have I been hit?
-                    // var p = ctx.getImageData(this.x, this.y, 1, 1).data;
+                    var p = ctx.getImageData(this.x, this.y, 1, 1).data;
 
-                    // var collidedObject = findObjectICollidedWith(p);
+                    var collidedObject = findObjectICollidedWith(p);
 
-                    //if(collidedObject !== false) {
+                    if(collidedObject !== false) {
                         // we hit something... let's return that object to cody
-                    //    playerEvent({type: 'hit', data: collidedObject });
-                    //}
+                        playerEvent({type: 'hit', data: collidedObject });
+                    }
+
+                    if(ded) {
+                        ctx.beginPath();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = 'white';
+                        ctx.fillText('You dedboi! you got: ' + globalScoreThatJarredWillNeedToRefactor,canvas.width / 2,canvas.height / 2);
+                        ctx.font = '20px Lucida Console';
+
+                        ctx.closePath();
+                    }
 
                     ctx.save();
                     // move to the position of the triangle
@@ -315,9 +328,24 @@
                     ctx.fillStyle = 'rgb(' + this.colour + ')';
                     ctx.fill();
                     ctx.closePath();
-                    // draw the outline
-                    ctx.strokeStyle = 'rgb(' + this.colour + ')';
-                    ctx.stroke();
+                    if(socketId != this.socketId) {
+                        // draw the outline
+                        ctx.strokeStyle = 'rgb(' + this.colour + ')';
+                        ctx.stroke();
+                    } else {
+                        // draw the outline
+
+                        var colourString = this.colour.split(',');
+
+                        colourString[0] = 255 - colourString[0];
+                        colourString[1] = 255 - colourString[1];
+                        colourString[2] = 255 - colourString[2];
+                        var myLineColour = colourString.join(',');
+
+                        ctx.strokeStyle = 'rgb('+myLineColour+')';
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    }
                     // draw circle on top of the triangle so we know which way it's facing
                     ctx.beginPath();
                     ctx.arc(0,-this.h/2,2,0,Math.PI*2,false);
@@ -370,7 +398,6 @@
                                     } else {
                                         //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
-                                        log(1);
                                     }
                                 } else {
                                     // I'm not allowing for players to reverse into the boundaries for the scrolling viewport... *sigh*
@@ -385,7 +412,6 @@
                                     } else {
                                         //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
-                                        log(2);
                                     }
                                 }
                             } else if(this.x < 0 + Math.floor((canvas.width / 4)) && mapOffsetX < 0) {
@@ -402,7 +428,6 @@
                                     } else {
                                         //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
-                                        log(3);
                                     }
                                 } else {
                                     if(this.direction > 0 && this.direction < 180) {
@@ -416,7 +441,6 @@
                                     } else {
                                         //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
-                                        log(4);
                                     }
                                 }
                             } else if(this.x < this.h/2) {
@@ -428,7 +452,6 @@
                                         // change the x position based on the movement and angle
                                         // this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
-                                        log(5);
                                     }
                                 } else {
                                     // backward
@@ -438,7 +461,6 @@
                                         // change the x position based on the movement and angle
                                         //this.x += yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
-                                        log(6);
                                     }
                                 }
                             } else if(this.x > canvas.width - this.h/2) {
@@ -449,7 +471,6 @@
                                         // change the x position based on the movement and angle
                                         //this.x -= yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
-                                        log(7);
                                     }
                                 } else {
                                     if(this.direction < 360 && this.direction > 180) {
@@ -458,16 +479,14 @@
                                         // change the x position based on the movement and angle
                                         // this.x += yMovement * Math.sin(direction * Math.PI / 180);
                                         this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
-                                        log(8);
+
                                     }
                                 }
                             } else {
                                 if(this.direction < 360 && this.direction > 180) {
                                     this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,1);
-                                    log(9);
                                 } else {
                                     this.x -= moveX(this.x,this.y,yMovement,direction,this.h/2,-1);
-                                    log(10);
                                 }
                             }
                             // viewport move y axis
@@ -598,6 +617,7 @@
                     switch (data.type) {
                         case 'luckUpdate' :
                             if(isMe) {
+                                log('testasdf');
                                 luck = data.data;
                             } else {
                                 this.luck = data.data;
@@ -627,7 +647,7 @@
                 blahY = y;
                 blahY += step * Math.cos(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
                 var p = ctx.getImageData(x, blahY, 1, 1).data;
-                if(p[0] == 255) {
+                if(p[0] == 255 && p[1] == 255 && p[2] == 255) {
                     return 0;
                 } else {
                     return step * Math.cos(angle * Math.PI / 180);
@@ -636,22 +656,28 @@
 
             function displayScore() {
 
-                var score = 'Score: ' + (Date.now() - startTime);
+                if(!ded) {
+                    var score = 'Score: ' + (Date.now() - startTime);
 
-                if(Date.now() - lastScoreDisplayedTime > 500) {
-                    lastScoreDisplayedTime = Date.now();
-                } else{
-                    score = lastScoreDisplayed;
+                    if(Date.now() - lastScoreDisplayedTime > 500) {
+                        lastScoreDisplayedTime = Date.now();
+                    } else{
+                        score = lastScoreDisplayed;
+                    }
+
+                    var scoreOffsetX = canvas.width - 10;
+                    ctx.beginPath();
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(score,scoreOffsetX,20);
+                    ctx.font = '20px Lucida Console';
+                    ctx.textAlign = 'right';
+                    ctx.closePath();
+                    lastScoreDisplayed = score;
+
+                    globalScoreThatJarredWillNeedToRefactor = score;
                 }
 
-                var scoreOffsetX = canvas.width - 10;
-                ctx.beginPath();
-                ctx.fillStyle = 'white';
-                ctx.fillText(score,scoreOffsetX,20);
-                ctx.font = '20px Lucida Console';
-                ctx.textAlign = 'right';
-                ctx.closePath();
-                lastScoreDisplayed = score;
+
             }
             function displayLuck() {
                 var r = 255 - (255 * (luck / 100));
@@ -659,6 +685,16 @@
                 var b = 0;
                 ctx.fillStyle = 'rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.8)';
                 ctx.fillRect(10,10,canvas.width * (luck / 400),20);
+                document.getElementById('data').innerHTML = "<br> Yo luck: " + luck;
+                for(var key in players) {
+                    if(players[key].socketId != socketId) {
+                        document.getElementById('data').innerHTML += "<br><span style=' color: rgb(" + players[key].colour + "); '>" + players[key].username + " - Luck: "+ players[key].luck + "</span>";
+                    } else {
+                        document.getElementById('data').innerHTML += "<br><span style=' color: rgb(" + players[key].colour + "); '>" + players[key].username + " - Luck: "+ luck + "</span>";
+                    }
+
+                }
+
             }
             function displayPulses() {
                 // Do pulse here
@@ -676,6 +712,17 @@
                     }
                 }
             }
+            function displayItems() {
+                for(var i=0;i<items.length;i++) {
+
+                    ctx.beginPath();
+                    ctx.fillStyle = 'green';
+                    ctx.fillRect(items[i].x,items[i].y,items[i].width,items[i].height);
+                    ctx.closePath();
+
+                }
+            }
+
             /**
              *
              * render function
@@ -684,11 +731,12 @@
              */
             function render() {
                 ctx.clearRect(0,0,canvas.width,canvas.height);
-
+                // draw any pulses
                 displayPulses();
-
+                // draw the map with items
 				ctx.save();
 				ctx.translate(mapOffsetX,mapOffsetY);
+                displayItems();
                 ctx.beginPath();
                 ctx.fillStyle = 'ffffff';
                 ctx.fillRect(150,150,100,100);
@@ -709,13 +757,6 @@
 
                 displayScore();
                 displayLuck();
-
-
-//                document.getElementById('data').innerHTML = '<br>mapOffsetX: ' + mapOffsetX;
-//                document.getElementById('data').innerHTML += '<br>mapOffsetY: ' + mapOffsetY;
-//
-//                document.getElementById('data').innerHTML += '<br>Player Map X: ' + mapOffsetX;
-//                document.getElementById('data').innerHTML += '<br>Player Map Y: ' + mapOffsetY;
 
             }
 
@@ -753,10 +794,11 @@
             });
 
             kd.UP.down(function(){
-                players[socketId].lastY = players[socketId].y;
-                moveSteps = Math.abs(moveSteps) * -1;
-                players[socketId].updateCoords(moveSteps,players[socketId].direction);
-
+                if(!ded) {
+                    players[socketId].lastY = players[socketId].y;
+                    moveSteps = Math.abs(moveSteps) * -1;
+                    players[socketId].updateCoords(moveSteps,players[socketId].direction);
+                }
             });
 
 
@@ -772,9 +814,11 @@
 
             kd.P.up(function(){
                 // trigger pulse for player
-                pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY,players[socketId].colour));
-                playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
-                gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
+                if(!ded) {
+                    pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY,players[socketId].colour));
+                    playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
+                    gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
+                }
             });
 
             // This update loop is the heartbeat of Keydrown
@@ -789,15 +833,15 @@
 			window.onload = init;
 
             function log(blah) {
-                //console.log(blah);
+                console.log(blah);
             }
 
-		</script>
+
+        </script>
 	</head>
 	<body style="background: #2b2b2b;">
 		<div id="wrap" style="position: relative;">
-			<canvas width="1000" height="500" id="canvas1"></canvas>
-
+			<canvas width="1000" height="500" id="canvas1" style="float: left; background: transparent;"></canvas>
             <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
             <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
 		</div>
