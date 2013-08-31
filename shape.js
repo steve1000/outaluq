@@ -26,7 +26,8 @@ var Shape = function() {
             width: params.width || 20,
             sides: params.sides || 4,
             offsetX: params.offsetX || 0,
-            offsetY: params.offsetY || 0
+            offsetY: params.offsetY || 0,
+            point: params.point || 0
         }
 
         //Determine the points of the shape
@@ -85,6 +86,15 @@ var Shape = function() {
                 ctx.strokeStyle = 'rgb('+myLineColour+')';
                 ctx.lineWidth = data.border;
                 ctx.stroke();
+            }
+
+            //Add a circle to the front of the shape
+            if(data.point) {
+                ctx.beginPath();
+                ctx.arc(0, -data.length/2, data.point, 0, Math.PI*2, false);
+                ctx.fillStyle = 'rgb(' + data.colour + ')';
+                ctx.fill();
+                ctx.closePath();
             }
 
             //Restore canvas state
