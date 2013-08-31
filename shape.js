@@ -30,13 +30,17 @@ var Shape = function() {
             point: params.point || 0
         }
 
-        //Determine the points of the shape
-        self.data['points'] = [];
-        for(var i = 1; i <= self.data.sides; i++) {
-            self.data['points'].push({
-                x: self.data.width/2 * Math.cos((2 * Math.PI * (i / self.data.sides) - ((90 + self.data.offsetRotation) * Math.PI / 180))) + self.data.offsetX,
-                y: self.data.length/2 * Math.sin((2 * Math.PI * (i / self.data.sides) - ((90 + self.data.offsetRotation) * Math.PI / 180))) + self.data.offsetY
-            });
+        /**
+         * Calculate the points to be drawn
+         */
+        this.calculatePoints = function() {
+            self.data.points = [];
+            for(var i = 1; i <= self.data.sides; i++) {
+                self.data['points'].push({
+                    x: self.data.width/2 * Math.cos((2 * Math.PI * (i / self.data.sides) - ((90 + self.data.offsetRotation) * Math.PI / 180))) + self.data.offsetX,
+                    y: self.data.length/2 * Math.sin((2 * Math.PI * (i / self.data.sides) - ((90 + self.data.offsetRotation) * Math.PI / 180))) + self.data.offsetY
+                });
+            }
         }
 
         /**
@@ -50,13 +54,27 @@ var Shape = function() {
         }
 
         /**
+         * Set the object length
+         * @param length
+         * @returns {Shape}
+         */
+        this.setLength = function(length) {
+            self.data['length'] = length;
+            self.calculatePoints();
+            return this;
+        }
+
+        /**
          * Draw the shape
          * @param x
          * @param y
          * @param rotation
          */
         this.draw = function(x, y, rotation) {
-            //Save canvase state
+            if(self.data.sides == 4) {
+//                console.log(self.data.points);
+            }
+            //Save canvas state
             ctx.save();
 
             //Translate canvas to the point to draw
@@ -111,6 +129,8 @@ var Shape = function() {
             ctx.restore();
         }
 
+        //Initialise
+        self.calculatePoints();
     }
     return cls;
 }();

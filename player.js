@@ -20,7 +20,7 @@ var Player = function() {
         this.mapY = y;
         this.luck = playerLuck;
         this.socketId = id;
-        this.shape = new Shape({
+        this.player = new Shape({
             sides: 5,
             colour: this.colour,
             fill: true,
@@ -31,7 +31,6 @@ var Player = function() {
             sides: 4,
             fill: true,
             offsetX: 20,
-            length: 30,
             width: 5,
             offsetRotation: -45
         });
@@ -69,11 +68,10 @@ var Player = function() {
                 // everyone else
 //                        ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
             }
-            self.shape.draw(self.x, self.y, self.direction);
-            var r = 255 - (255 * (this.luck / 100));
-            var g = 255 * (this.luck / 100);
-            var b = 0;
-            self.luckBar.setColour('rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.9)').setLength(playerLuck * 3).draw(self.x, self.y, self.direction);
+            self.player.draw(self.x, self.y, self.direction);
+            self.luckBar.setColour(getHealthColour(this.luck))
+                .setLength(luck/2)
+                .draw(self.x, self.y, self.direction);
 
             this.update();
 
@@ -335,6 +333,18 @@ var Player = function() {
             }
 
         };
+    }
+
+    /**
+     * Generate health bar colour on a green -> red scale
+     * @param luck
+     * @returns {string}
+     */
+    function getHealthColour(luck) {
+        var r = 255 - (255 * (luck / 100));
+        var g = 255 * (luck / 100);
+        var b = 0;
+        return 'rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.9)';
     }
     return cls;
 }();
