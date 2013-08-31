@@ -24,13 +24,18 @@ var Shape = function() {
             border: params.border || 0,
             length: params.length || 20,
             width: params.width || 20,
-            sides: params.sides || 4
+            sides: params.sides || 4,
+            offsetX: params.offsetX || 0,
+            offsetY: params.offsetY || 0
         }
 
         //Determine the points of the shape
         data['points'] = [];
         for(var i = 1; i <= data.sides; i++) {
-            data['points'].push({x: data.length/2 * Math.cos(2 * Math.PI * (i / data.sides)), y: data.width/2 * Math.sin(2 * Math.PI * (i / data.sides))});
+            data['points'].push({
+                x: data.width/2 * Math.cos((2 * Math.PI * (i / data.sides) - (90 * Math.PI / 180))) + data.offsetX,
+                y: data.length/2 * Math.sin((2 * Math.PI * (i / data.sides) - (90 * Math.PI / 180))) + data.offsetY
+            });
         }
 
         /**
@@ -46,8 +51,8 @@ var Shape = function() {
             //Translate canvas to the point to draw
             ctx.translate(x, y);
 
-            //Rotate shape - offset by 90 degrees so 0 is "up"
-            ctx.rotate(Math.PI / 180 * ((rotation || 0) - 90));
+            //Rotate shape
+            ctx.rotate(Math.PI / 180 * ((rotation || 0)));
 
             //Start shape
             ctx.beginPath();
