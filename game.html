@@ -4,270 +4,345 @@
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<title></title>
-        <script src="http://192.168.4.42:8080/socket.io/socket.io.js"></script>
+        <script src="http://localhost:8080/socket.io/socket.io.js"></script>
         <script src="keydrown.js"></script>
         <script src="store.js"></script>
         <script src="8bit.js"></script>
         <script src="8bitplay.js"></script>
         <script src="../audio/gamesounds.js"></script>
+
+	</head>
+	<body style="background: #2b2b2b;">
+		<div id="wrap" style="position: relative;">
+			<canvas width="1000" height="500" id="canvas" style="float: left; background: transparent;"></canvas>
+            <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
+            <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
+		</div>
+
         <script>
-			// TODO: collision detection strategy - http://jsfiddle.net/DV9Bw/1/     http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
+        // TODO: collision detection strategy - http://jsfiddle.net/DV9Bw/1/     http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
 
-            // Global vars used throughout the game
-            var canvas;
-            var ctx;
-            var playerPosX;
-            var playerPosY;
-            var triangleSideLength = 20;
-            var playerColour = '#ff0000';
-            var moveRate = 0;
-            var moveSteps = 5;
-            var moveAngle = 0;
-            var angleSteps = 5;
-            var keys = {};
-            var player;
-            var pulses = [];
-            var mapOffsetX = 0;
-            var mapOffsetY = 0;
-            var playerMapPosition;
-            var friction = 10;
-            var map = {};
-            map.width = 5000;
-            map.height = 5000;
-            var players = {};
-            var mapArray = [];
-            var startTime = Date.now();
-            var lastScoreDisplayedTime = 0;
-            var lastScoreDisplayed;
-            var luck = 100;
-            var socketId;
-            var socket = io.connect('http://192.168.4.42:8080'),
-                    username;
-            var people;
-            var worldItems = [];
-            var colourCollisionRange = 4;
-            var ded = false;
-            var globalScoreThatJarredWillNeedToRefactor;
-            var items = [];
-            var myItems = [];
+        // Global vars used throughout the game
+        var canvas;
+        var ctx;
+        var playerPosX;
+        var playerPosY;
+        var triangleSideLength = 20;
+        var playerColour = '#ff0000';
+        var moveRate = 0;
+        var moveSteps = 5;
+        var moveAngle = 0;
+        var angleSteps = 5;
+        var keys = {};
+        var player;
+        var pulses = [];
+        var mapOffsetX = 0;
+        var mapOffsetY = 0;
+        var playerMapPosition;
+        var friction = 10;
+        var map = {};
+        map.width = 5000;
+        map.height = 5000;
+        var players = {};
+        var mapArray = [];
+        var startTime = Date.now();
+        var lastScoreDisplayedTime = 0;
+        var lastScoreDisplayed;
+        var luck = 100;
+        var socketId;
+        var socket = io.connect('http://localhost:8080'),
+                username;
+        var people;
+        var worldItems = [];
+        var colourCollisionRange = 4;
+        var ded = false;
+        var globalScoreThatJarredWillNeedToRefactor;
+        var items = [];
+        var myItems = [];
 
-            socket.on('connect', function() {
-                if (! store.get('username')) {
-                    username = prompt('What is your username?');
-                    store.set('username', username);
-                } else {
-                    username = store.get('username');
-                }
+        socket.on('connect', function() {
+            if (! store.get('username')) {
+                username = prompt('What is your username?');
+                store.set('username', username);
+            } else {
+                username = store.get('username');
+            }
 
-                var loginObject = {
-                    username: username,
-                    socketId: socketId,
-                    version: '0.0.1'
-                }
+            var loginObject = {
+                username: username,
+                socketId: socketId,
+                version: '0.0.1'
+            }
 
-                socket.emit('connect', loginObject);
-            });
+            socket.emit('connect', loginObject);
+        });
 
-            socket.on('updateOtherPlayers', function (data) {
+        socket.on('updateOtherPlayers', function (data) {
 //                log(data);
-                switch (data.type) {
-                    case 'moved' :
-                        players[data.socketId].updateCoords(data.data.coords.x,data.data.coords.y,data.data.direction);
-                        break;
-                    case 'luckUpdate' :
-                        players[data.socketId].updatePlayerState(data,false);
-                        break;
-                    case 'disconnected' :
-                        delete players[data.socketId];
-                        break;
-                    case 'playerJoined' :
-                        players[data.socketId] = new Player(data.data.coords.x,data.data.coords.y,data.data.colour,data.data.socketId, data.data.direction, data.data.username,data.data.luck);
-                        break;
-                    case 'dead' :
-                        delete players[data.socketId];
-                        break;
-                }
-
-            });
-
-            function addWorldItem(type,colour) {
-
-                worldItems.push({
-                    type: type,
-                    colour: colour.split(',')
-                });
-
-                return worldItems.length;
-
+            switch (data.type) {
+                case 'moved' :
+                    players[data.socketId].updateCoords(data.data.coords.x,data.data.coords.y,data.data.direction);
+                    break;
+                case 'luckUpdate' :
+                    players[data.socketId].updatePlayerState(data,false);
+                    break;
+                case 'disconnected' :
+                    delete players[data.socketId];
+                    break;
+                case 'playerJoined' :
+                    players[data.socketId] = new Player(data.data.coords.x,data.data.coords.y,data.data.colour,data.data.socketId, data.data.direction, data.data.username,data.data.luck);
+                    break;
+                case 'dead' :
+                    delete players[data.socketId];
+                    break;
             }
 
-            function removeWorldItem(pos) {
-                worldItems = worldItems.splice(pos,1);
-            }
-            socket.on('worldEvents', function (data) {
-                switch (data.type) {
-                    case 'pulse' :
-                        var pos = addWorldItem(data.type,data.data.colour);
-                        pulses.push(new Pulse(data.data.mapX,data.data.mapY,data.data.colour, function(){
-                            removeWorldItem(pos);
-                        }));
+        });
 
-                        gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
-                        break;
-                }
+        function addWorldItem(type,colour) {
+
+            worldItems.push({
+                type: type,
+                colour: colour.split(',')
             });
 
-            socket.on('updateItems',function(data){
-                log('yo got items dawg');
-                items = data;
-            });
+            return worldItems.length;
+
+        }
+
+        function removeWorldItem(pos) {
+            worldItems = worldItems.splice(pos,1);
+        }
+        socket.on('worldEvents', function (data) {
+            switch (data.type) {
+                case 'pulse' :
+                    var pos = addWorldItem(data.type,data.data.colour);
+                    pulses.push(new Pulse(data.data.mapX,data.data.mapY,data.data.colour, function(){
+                        removeWorldItem(pos);
+                    }));
+
+//                        gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
+                    break;
+            }
+        });
+
+        socket.on('updateItems',function(data){
+            log('yo got items dawg');
+            items = data;
+        });
 
 
-            // update player
-            socket.on('updatePlayer',function (data) {
-                // Cody is sending through a type which we'll see what we need to do with it
-                switch (data.type) {
-                    case 'initialise' :
-                        initialise(data);
-                        break;
-                    case 'luckUpdate' :
-                        players[data.socketId].updatePlayerState(data,true);
-                        break;
-                    case 'updateItems' :
-                        myItems.push(data);
-                        break;
-                    case 'dead' :
-                        ded = true;
-                        // TODO: reset score to 0
-                        // Show a screen with scores and show a button that has 'Retry'
-                        break;
-                }
-
-            });
-
-            function initialise(data) {
-                socketId = data.socketId;
-                people = data.data;
-                for (var key in people) {
-                    if (! people.hasOwnProperty(key)) {
-                        continue;
-                    }
-
-                    var p = people[key];
-                    if(key == socketId) {
-                        mapOffsetX = people[key].coords.vpx;
-                        mapOffsetY = people[key].coords.vpy;
-                        p.coords.x += people[key].coords.vpx;
-                        p.coords.y += people[key].coords.vpy;
-                    }
-                    //log('socketId: ' + key);
-                    players[key] = new Player(p.coords.x,p.coords.y,p.colour,key, p.direction, p.username, p.luck);
-                }
+        // update player
+        socket.on('updatePlayer',function (data) {
+            // Cody is sending through a type which we'll see what we need to do with it
+            switch (data.type) {
+                case 'initialise' :
+                    initialise(data);
+                    break;
+                case 'luckUpdate' :
+                    players[data.socketId].updatePlayerState(data,true);
+                    break;
+                case 'updateItems' :
+                    myItems.push(data);
+                    break;
+                case 'dead' :
+                    ded = true;
+                    // TODO: reset score to 0
+                    // Show a screen with scores and show a button that has 'Retry'
+                    break;
             }
 
-            /**
-             * This is now used instead of setInterval();
-             * It basically calls a function when it's ready, giving the browser time to catch
-             * up if it's lagging behind. Before, with setInterval it would call a function before
-             * it was ready to.
-             */
-            var requestAnimationFrame;
-            (function() {
-              requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
-                                      window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-              window.requestAnimationFrame = requestAnimationFrame;
-            })();
+        });
 
-            /**
-             * Standard initialising function
-             * Sets up the canvas context, player position and
-             * creates that player.
-             *
-             * Starts the update function which begins the game
-             */
-			function init() {
-				canvas = document.getElementById('canvas1');
-				ctx = canvas.getContext('2d');
+        function initialise(data) {
+            socketId = data.socketId;
+            people = data.data;
+            for (var key in people) {
+                if (! people.hasOwnProperty(key)) {
+                    continue;
+                }
 
-                playerPosX = canvas.width / 2;
-                playerPosY = canvas.height / 2;
-
-                // play the music
-                gameMusic.play();
-                // when the browser is ready, we'll send it to update()
-                requestAnimationFrame(update);
-			}
-
-            /**
-             * This is called every animation frame, checks for new players
-             * If there are, it will add them to the players array and
-             * render will draw them
-             */
-            function update() {
-                render();
-                // once it has been display, display it again if when it's ready
-                requestAnimationFrame(update);
+                var p = people[key];
+                if(key == socketId) {
+                    mapOffsetX = people[key].coords.vpx;
+                    mapOffsetY = people[key].coords.vpy;
+                    p.coords.x += people[key].coords.vpx;
+                    p.coords.y += people[key].coords.vpy;
+                }
+                //log('socketId: ' + key);
+                players[key] = new Player(p.coords.x,p.coords.y,p.colour,key, p.direction, p.username, p.luck);
             }
+        }
+
+        /**
+         * This is now used instead of setInterval();
+         * It basically calls a function when it's ready, giving the browser time to catch
+         * up if it's lagging behind. Before, with setInterval it would call a function before
+         * it was ready to.
+         */
+        var requestAnimationFrame;
+        (function() {
+            requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                    window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+            window.requestAnimationFrame = requestAnimationFrame;
+        })();
+
+        /**
+         * Standard initialising function
+         * Sets up the canvas context, player position and
+         * creates that player.
+         *
+         * Starts the update function which begins the game
+         */
+        function init() {
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+
+            playerPosX = canvas.width / 2;
+            playerPosY = canvas.height / 2;
+
+            // play the music
+//                gameMusic.play();
+            // when the browser is ready, we'll send it to update()
+            requestAnimationFrame(update);
+        }
+
+        /**
+         * This is called every animation frame, checks for new players
+         * If there are, it will add them to the players array and
+         * render will draw them
+         */
+        function update() {
+            render();
+            // once it has been display, display it again if when it's ready
+            requestAnimationFrame(update);
+        }
 
 
 
-            function findObjectICollidedWith(coloursArray) {
-                // loop through each worldItems array and check for the 3 matching colour values within a range of 4 either side
-                for(var i=0;i<worldItems.length;i++) {
+        function findObjectICollidedWith(coloursArray) {
+            // loop through each worldItems array and check for the 3 matching colour values within a range of 4 either side
+            for(var i=0;i<worldItems.length;i++) {
 
-                    if(
+                if(
                         (coloursArray[0] < worldItems[i].colour[0] + colourCollisionRange && coloursArray[0] > worldItems[i].colour[0] - colourCollisionRange) &&
-                        (coloursArray[1] < worldItems[i].colour[1] + colourCollisionRange && coloursArray[1] > worldItems[i].colour[1] - colourCollisionRange) &&
-                        (coloursArray[2] < worldItems[i].colour[2] + colourCollisionRange && coloursArray[2] > worldItems[i].colour[2] - colourCollisionRange)
-                    ) {
-                        // we have a hit
-                        return worldItems[i];
+                                (coloursArray[1] < worldItems[i].colour[1] + colourCollisionRange && coloursArray[1] > worldItems[i].colour[1] - colourCollisionRange) &&
+                                (coloursArray[2] < worldItems[i].colour[2] + colourCollisionRange && coloursArray[2] > worldItems[i].colour[2] - colourCollisionRange)
+                        ) {
+                    // we have a hit
+                    return worldItems[i];
+                }
+            }
+            return false;
+        }
+
+
+        /**
+         * Player object
+         * This will create the other players in the world
+         * The name and positions will be sent through from Cody's server
+         */
+
+
+        function Pulse(px,py,colour,cb) {
+            var pulse = {
+                transparency: 0.8,
+                lineWidth: 2,
+                myx: 2,
+                px: px,
+                py: py,
+                colour: colour,
+                draw: function() {
+                    var lw = ctx.lineWidth;
+                    var ss = ctx.strokeStyle;
+                    var fs = ctx.fillStyle;
+                    ctx.save();
+                    ctx.translate(this.px + mapOffsetX,this.py + mapOffsetY);
+                    ctx.beginPath();
+                    ctx.lineWidth = this.lineWidth;
+                    ctx.strokeStyle = "rgba(" + this.colour +","+ this.transparency +")";
+                    ctx.fillStyle = 'transparent';
+                    ctx.arc(0, 0, this.myx*1.5, 0, Math.PI*2, false);
+                    ctx.stroke();
+                    ctx.closePath();
+                    ctx.lineWidth = lw;
+                    ctx.strokeStyle = ss;
+                    ctx.fillStyle = fs;
+                    ctx.restore();
+                },
+                cb: cb
+            }
+            return pulse;
+        }
+
+        /**
+         * Create a canvas shape
+         * @type {Shape}
+         * @param params
+         *      - points {Array} (Required)
+         *          - x {number}
+         *          - y {number}
+         *      - colour {string} - RGB X, Y, Z
+         *      - fill {boolean}
+         *      - border {boolean}
+         */
+        var Shape = function() {
+            var data,
+                canvas = document.getElementById('canvas'),
+                ctx = canvas.getContext('2d');
+
+            function cls(params) {
+                var self = this;
+
+                data = {
+                    points: params.points,
+                    colour: params.colour || '255, 255, 255',
+                    fill: params.fill || false,
+                    border: params.border || false
+                }
+
+                this.draw = function(x, y, rotation) {
+                    //Save canvase state
+                    ctx.save();
+
+                    //Translate canvas to the point to draw
+                    ctx.translate(x, y);
+
+                    //Rotate shape
+                    ctx.rotate(Math.PI / 180 * (rotation || 0));
+
+                    //Start shape
+                    ctx.beginPath();
+
+                    //Draw the points
+                    data.points.forEach(function(point) {
+                        ctx.lineTo(point.x, point.y);
+                    });
+
+                    //Set the colour
+                    ctx.fillStyle = 'rgb(' + data.colour + ')';
+
+                    //Fill shape
+                    if(data.fill) {
+                        ctx.fill();
                     }
+
+                    //@todo borders
+
+                    //End shape
+                    ctx.closePath();
+
+                    //Restore canvas state
+                    ctx.restore();
                 }
-                return false;
+
             }
+            return cls;
+        }();
 
-
-            /**
-             * Player object
-             * This will create the other players in the world
-             * The name and positions will be sent through from Cody's server
-             */
-
-
-            function Pulse(px,py,colour,cb) {
-                var pulse = {
-                    transparency: 0.8,
-                    lineWidth: 2,
-                    myx: 2,
-                    px: px,
-                    py: py,
-                    colour: colour,
-                    draw: function() {
-                        var lw = ctx.lineWidth;
-                        var ss = ctx.strokeStyle;
-                        var fs = ctx.fillStyle;
-                        ctx.save();
-                        ctx.translate(this.px + mapOffsetX,this.py + mapOffsetY);
-                        ctx.beginPath();
-                        ctx.lineWidth = this.lineWidth;
-                        ctx.strokeStyle = "rgba(" + this.colour +","+ this.transparency +")";
-                        ctx.fillStyle = 'transparent';
-                        ctx.arc(0, 0, this.myx*1.5, 0, Math.PI*2, false);
-                        ctx.stroke();
-                        ctx.closePath();
-                        ctx.lineWidth = lw;
-                        ctx.strokeStyle = ss;
-                        ctx.fillStyle = fs;
-                        ctx.restore();
-                    },
-                    cb: cb
-                }
-                return pulse;
-            }
-
-
-            function Player(x,y,colour,id,direction,screenName,playerLuck) {
+        var Player = function() {
+            var finalScore;
+            function cls(x,y,colour,id,direction,screenName,playerLuck) {
 
                 var self = this;
                 this.x = x;
@@ -283,11 +358,30 @@
                 this.mapY = y;
                 this.luck = playerLuck;
                 this.socketId = id;
+                this.shape = new Shape({
+                    points: [
+                        {
+                            x: -triangleSideLength/2,  //@todo make this not a constant..
+                            y: triangleSideLength/2
+                        },
+                        {
+                            x: triangleSideLength/2,
+                            y: triangleSideLength/2
+                        },
+                        {
+                            x: 0,
+                            y: -triangleSideLength/2
+                        }
+                    ],
+                    colour: this.colour,
+                    fill: true,
+                    border: true
+                });
 
                 this.draw = function() {
 
                     // have I been hit?
-                    var p = ctx.getImageData(this.x, this.y, 1, 1).data;
+                    var p = ctx.getImageData(self.x, self.y, 1, 1).data;
 
                     var collidedObject = findObjectICollidedWith(p);
 
@@ -296,6 +390,7 @@
                         playerEvent({type: 'hit', data: collidedObject });
                     }
 
+                    //game's over
                     if(ded) {
                         ctx.beginPath();
                         ctx.textAlign = 'center';
@@ -303,31 +398,26 @@
                         ctx.fillStyle = 'white';
                         ctx.fillText('You dedboi! you got: ' + globalScoreThatJarredWillNeedToRefactor,canvas.width / 2,canvas.height / 2);
                         ctx.font = '20px Lucida Console';
-
                         ctx.closePath();
                     }
 
+//                    if(socketId == this.socketId) {
+//                        self.mapY = self.y + Math.abs(mapOffsetY);
+//                        self.mapX = self.x + Math.abs(mapOffsetX);
+//                        ctx.translate(self.x,self.y);
+//                    } else {
+//                        // everyone else
+//                        ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
+//                    }
+                    self.shape.draw(self.x, self.y, self.direction);
+
+
+
+
+
+
+
                     ctx.save();
-                    // move to the position of the triangle
-                    if(socketId == this.socketId) {
-                        this.mapY = this.y + Math.abs(mapOffsetY);
-                        this.mapX = this.x + Math.abs(mapOffsetX);
-                        ctx.translate(this.x,this.y);
-                    } else {
-                        // everyone else
-                        ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
-                    }
-                    // rotate it based on the keys pressed
-                    ctx.rotate(Math.PI / 180 * this.direction);
-                    // start our drawing of the triangle
-                    ctx.beginPath();
-                    ctx.moveTo(0,-this.h/2);
-                    ctx.lineTo(-triangleSideLength/2, this.h/2);
-                    ctx.lineTo(triangleSideLength/2,this.h/2);
-                    ctx.lineTo(0,-this.h/2);
-                    ctx.fillStyle = 'rgb(' + this.colour + ')';
-                    ctx.fill();
-                    ctx.closePath();
                     if(socketId != this.socketId) {
                         // draw the outline
                         ctx.strokeStyle = 'rgb(' + this.colour + ')';
@@ -590,7 +680,7 @@
                     }
                     this.direction = direction;
                 };
-				this.update = function() {
+                this.update = function() {
 
                     if(socketId == this.socketId) {
                         if(this.lastX == this.x && this.lastY == this.y && this.lastDirection == this.direction) {
@@ -610,9 +700,9 @@
                             direction: this.direction
                         });
 
-                        gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
+//                            gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
                     }
-				};
+                };
                 this.updatePlayerState = function(data,isMe) {
                     switch (data.type) {
                         case 'luckUpdate' :
@@ -631,219 +721,214 @@
 
                 };
             }
+            return cls;
+        }();
 
-            function moveX(x,y,step,angle,height,multiplier) {
-                blahX = x;
-                blahX -= step * Math.sin(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
-                var p = ctx.getImageData(blahX, y, 1, 1).data;
-                if(p[0] == 255) {
-                    return 0;
-                } else {
-                    return step * Math.sin(angle * Math.PI / 180);
-                }
+        function moveX(x,y,step,angle,height,multiplier) {
+            blahX = x;
+            blahX -= step * Math.sin(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
+            var p = ctx.getImageData(blahX, y, 1, 1).data;
+            if(p[0] == 255) {
+                return 0;
+            } else {
+                return step * Math.sin(angle * Math.PI / 180);
             }
+        }
 
-            function moveY(x,y,step,angle,height,multiplier) {
-                blahY = y;
-                blahY += step * Math.cos(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
-                var p = ctx.getImageData(x, blahY, 1, 1).data;
-                if(p[0] == 255 && p[1] == 255 && p[2] == 255) {
-                    return 0;
-                } else {
-                    return step * Math.cos(angle * Math.PI / 180);
-                }
+        function moveY(x,y,step,angle,height,multiplier) {
+            blahY = y;
+            blahY += step * Math.cos(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
+            var p = ctx.getImageData(x, blahY, 1, 1).data;
+            if(p[0] == 255 && p[1] == 255 && p[2] == 255) {
+                return 0;
+            } else {
+                return step * Math.cos(angle * Math.PI / 180);
             }
+        }
 
-            function displayScore() {
+        function displayScore() {
 
-                if(!ded) {
-                    var score = 'Score: ' + (Date.now() - startTime);
+            if(!ded) {
+                var score = 'Score: ' + (Date.now() - startTime);
 
-                    if(Date.now() - lastScoreDisplayedTime > 500) {
-                        lastScoreDisplayedTime = Date.now();
-                    } else{
-                        score = lastScoreDisplayed;
-                    }
-
-                    var scoreOffsetX = canvas.width - 10;
-                    ctx.beginPath();
-                    ctx.fillStyle = 'white';
-                    ctx.fillText(score,scoreOffsetX,20);
-                    ctx.font = '20px Lucida Console';
-                    ctx.textAlign = 'right';
-                    ctx.closePath();
-                    lastScoreDisplayed = score;
-
-                    globalScoreThatJarredWillNeedToRefactor = score;
+                if(Date.now() - lastScoreDisplayedTime > 500) {
+                    lastScoreDisplayedTime = Date.now();
+                } else{
+                    score = lastScoreDisplayed;
                 }
 
-
-            }
-            function displayLuck() {
-                var r = 255 - (255 * (luck / 100));
-                var g = 255 * (luck / 100);
-                var b = 0;
-                ctx.fillStyle = 'rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.8)';
-                ctx.fillRect(10,10,canvas.width * (luck / 400),20);
-                document.getElementById('data').innerHTML = "<br> Yo luck: " + luck;
-                for(var key in players) {
-                    if(players[key].socketId != socketId) {
-                        document.getElementById('data').innerHTML += "<br><span style=' color: rgb(" + players[key].colour + "); '>" + players[key].username + " - Luck: "+ players[key].luck + "</span>";
-                    } else {
-                        document.getElementById('data').innerHTML += "<br><span style=' color: rgb(" + players[key].colour + "); '>" + players[key].username + " - Luck: "+ luck + "</span>";
-                    }
-
-                }
-
-            }
-            function displayPulses() {
-                // Do pulse here
-                for(var i=0;i<pulses.length;i++) {
-                    pulses[i].draw();
-                    pulses[i].myx++;
-                    pulses[i].transparency -= 0.01;
-                    pulses[i].lineWidth += 0.05;
-
-                    if(pulses[i].transparency < 0.02) {
-                        if(typeof pulses[i].cb !== 'undefined') {
-                            pulses[i].cb();
-                        }
-                        pulses.splice(0,1);
-                    }
-                }
-            }
-            function displayItems() {
-                for(var i=0;i<items.length;i++) {
-
-                    ctx.beginPath();
-                    ctx.fillStyle = 'green';
-                    ctx.fillRect(items[i].x,items[i].y,items[i].width,items[i].height);
-                    ctx.closePath();
-
-                }
-            }
-
-            /**
-             *
-             * render function
-             * This is where the canvas is cleared and redrawn every frame
-             * Players positions are updated through here
-             */
-            function render() {
-                ctx.clearRect(0,0,canvas.width,canvas.height);
-                // draw any pulses
-                displayPulses();
-                // draw the map with items
-				ctx.save();
-				ctx.translate(mapOffsetX,mapOffsetY);
-                displayItems();
+                var scoreOffsetX = canvas.width - 10;
                 ctx.beginPath();
-                ctx.fillStyle = 'ffffff';
-                ctx.fillRect(150,150,100,100);
-                ctx.fillRect(350,350,50,50);
-                ctx.fillRect(750,750,50,50);
-                ctx.arc(100,350,40,0,Math.PI*2,false);
-                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.fillText(score,scoreOffsetX,20);
+                ctx.font = '20px Lucida Console';
+                ctx.textAlign = 'right';
                 ctx.closePath();
-				//ctx.drawImage(imgObj,0,0);
-				ctx.restore();
+                lastScoreDisplayed = score;
 
-                for(var key in players) {
-                    if (!players.hasOwnProperty(key)) {
-                        continue;
-                    }
-                    players[key].draw();
+                globalScoreThatJarredWillNeedToRefactor = score;
+            }
+
+
+        }
+        function displayLuck() {
+            var r = 255 - (255 * (luck / 100));
+            var g = 255 * (luck / 100);
+            var b = 0;
+            ctx.fillStyle = 'rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.8)';
+            ctx.fillRect(10,10,canvas.width * (luck / 400),20);
+            document.getElementById('data').innerHTML = "<br> Yo luck: " + luck;
+            for(var key in players) {
+                if(players[key].socketId != socketId) {
+                    document.getElementById('data').innerHTML += "<br><span style=' color: rgb(" + players[key].colour + "); '>" + players[key].username + " - Luck: "+ players[key].luck + "</span>";
+                } else {
+                    document.getElementById('data').innerHTML += "<br><span style=' color: rgb(" + players[key].colour + "); '>" + players[key].username + " - Luck: "+ luck + "</span>";
                 }
-
-                displayScore();
-                displayLuck();
 
             }
 
-            /**
-             * moveTriangle function
-             * Sets up the key event handling
-             * N.B. the event listener is on the <body> tag.
-             * This should probably be moved
-             */
+        }
+        function displayPulses() {
+            // Do pulse here
+            for(var i=0;i<pulses.length;i++) {
+                pulses[i].draw();
+                pulses[i].myx++;
+                pulses[i].transparency -= 0.01;
+                pulses[i].lineWidth += 0.05;
 
-            kd.LEFT.down(function(){
-                players[socketId].lastX = players[socketId].x;
-                players[socketId].lastDirection = players[socketId].direction;
-                //moveAngle -= angleSteps;
-                players[socketId].direction -= angleSteps;
-                if(players[socketId].direction < 0) {
-                    players[socketId].direction = 360 + players[socketId].direction;
-                } else if(players[socketId].direction > 360) {
-                    players[socketId].direction = players[socketId].direction - 360;
+                if(pulses[i].transparency < 0.02) {
+                    if(typeof pulses[i].cb !== 'undefined') {
+                        pulses[i].cb();
+                    }
+                    pulses.splice(0,1);
                 }
-                players[socketId].updateCoords(players[socketId].x,players[socketId].y,players[socketId].direction); // left
-            });
+            }
+        }
+        function displayItems() {
+            for(var i=0;i<items.length;i++) {
 
-            kd.RIGHT.down(function(){
-                players[socketId].lastX = players[socketId].x;
-                players[socketId].lastDirection = players[socketId].direction;
-                players[socketId].direction += angleSteps;
-                if(players[socketId].direction < 0) {
-                    players[socketId].direction = 360 + players[socketId].direction;
-                } else if(players[socketId].direction > 360) {
-                    players[socketId].direction = players[socketId].direction - 360;
+                ctx.beginPath();
+                ctx.fillStyle = 'green';
+                ctx.fillRect(items[i].x,items[i].y,items[i].width,items[i].height);
+                ctx.closePath();
+
+            }
+        }
+
+        /**
+         *
+         * render function
+         * This is where the canvas is cleared and redrawn every frame
+         * Players positions are updated through here
+         */
+        function render() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            // draw any pulses
+            displayPulses();
+            // draw the map with items
+            ctx.save();
+            ctx.translate(mapOffsetX,mapOffsetY);
+            displayItems();
+            ctx.beginPath();
+            ctx.fillStyle = 'ffffff';
+            ctx.fillRect(150,150,100,100);
+            ctx.fillRect(350,350,50,50);
+            ctx.fillRect(750,750,50,50);
+            ctx.arc(100,350,40,0,Math.PI*2,false);
+            ctx.fill();
+            ctx.closePath();
+            //ctx.drawImage(imgObj,0,0);
+            ctx.restore();
+
+            for(var key in players) {
+                if (!players.hasOwnProperty(key)) {
+                    continue;
                 }
-                players[socketId].updateCoords(players[socketId].x,players[socketId].y,players[socketId].direction); // right
+                players[key].draw();
+            }
 
-            });
+            displayScore();
+            displayLuck();
 
-            kd.UP.down(function(){
-                if(!ded) {
-                    players[socketId].lastY = players[socketId].y;
-                    moveSteps = Math.abs(moveSteps) * -1;
-                    players[socketId].updateCoords(moveSteps,players[socketId].direction);
-                }
-            });
+        }
+
+        /**
+         * moveTriangle function
+         * Sets up the key event handling
+         * N.B. the event listener is on the <body> tag.
+         * This should probably be moved
+         */
+
+        kd.LEFT.down(function(){
+            players[socketId].lastX = players[socketId].x;
+            players[socketId].lastDirection = players[socketId].direction;
+            //moveAngle -= angleSteps;
+            players[socketId].direction -= angleSteps;
+            if(players[socketId].direction < 0) {
+                players[socketId].direction = 360 + players[socketId].direction;
+            } else if(players[socketId].direction > 360) {
+                players[socketId].direction = players[socketId].direction - 360;
+            }
+            players[socketId].updateCoords(players[socketId].x,players[socketId].y,players[socketId].direction); // left
+        });
+
+        kd.RIGHT.down(function(){
+            players[socketId].lastX = players[socketId].x;
+            players[socketId].lastDirection = players[socketId].direction;
+            players[socketId].direction += angleSteps;
+            if(players[socketId].direction < 0) {
+                players[socketId].direction = 360 + players[socketId].direction;
+            } else if(players[socketId].direction > 360) {
+                players[socketId].direction = players[socketId].direction - 360;
+            }
+            players[socketId].updateCoords(players[socketId].x,players[socketId].y,players[socketId].direction); // right
+
+        });
+
+        kd.UP.down(function(){
+            if(!ded) {
+                players[socketId].lastY = players[socketId].y;
+                moveSteps = Math.abs(moveSteps) * -1;
+                players[socketId].updateCoords(moveSteps,players[socketId].direction);
+            }
+        });
 
 
-            kd.DOWN.down(function(){
-                // N.B. I've taken the down button out of the controls for the moment
-                // because it was causing a bit of havoc and unneeded code for the collision
-                // detection
+        kd.DOWN.down(function(){
+            // N.B. I've taken the down button out of the controls for the moment
+            // because it was causing a bit of havoc and unneeded code for the collision
+            // detection
 
 //                players[socketId].lastY = players[socketId].y;
 //                moveSteps = Math.abs(moveSteps);
 //                players[socketId].updateCoords(moveSteps,players[socketId].direction);
-            });
+        });
 
-            kd.P.up(function(){
-                // trigger pulse for player
-                if(!ded) {
-                    pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY,players[socketId].colour));
-                    playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
-                    gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
-                }
-            });
-
-            // This update loop is the heartbeat of Keydrown
-            kd.run(function () {
-                kd.tick();
-            });
-
-            function playerEvent(data) {
-                socket.emit('worldEvent',data);
+        kd.P.up(function(){
+            // trigger pulse for player
+            if(!ded) {
+                pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY,players[socketId].colour));
+                playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
+//                    gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
             }
+        });
 
-			window.onload = init;
+        // This update loop is the heartbeat of Keydrown
+        kd.run(function () {
+            kd.tick();
+        });
 
-            function log(blah) {
-                console.log(blah);
-            }
+        function playerEvent(data) {
+            socket.emit('worldEvent',data);
+        }
+
+        window.onload = init;
+
+        function log(blah) {
+            console.log(blah);
+        }
 
 
         </script>
-	</head>
-	<body style="background: #2b2b2b;">
-		<div id="wrap" style="position: relative;">
-			<canvas width="1000" height="500" id="canvas1" style="float: left; background: transparent;"></canvas>
-            <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
-            <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
-		</div>
 	</body>
 </html>
