@@ -298,10 +298,10 @@
                 this.luck = playerLuck;
                 this.socketId = id;
                 this.shape = new Shape({
-                    type: 'triangle',
+                    sides: 5,
                     colour: this.colour,
                     fill: true,
-                    border: true
+                    border: 2
                 });
 
                 this.draw = function() {
@@ -344,24 +344,7 @@
 
 
                     ctx.save();
-                    if(socketId != this.socketId) {
-                        // draw the outline
-                        ctx.strokeStyle = 'rgb(' + this.colour + ')';
-                        ctx.stroke();
-                    } else {
-                        // draw the outline
 
-                        var colourString = this.colour.split(',');
-
-                        colourString[0] = 255 - colourString[0];
-                        colourString[1] = 255 - colourString[1];
-                        colourString[2] = 255 - colourString[2];
-                        var myLineColour = colourString.join(',');
-
-                        ctx.strokeStyle = 'rgb('+myLineColour+')';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                    }
                     // draw circle on top of the triangle so we know which way it's facing
                     ctx.beginPath();
                     ctx.arc(0,-this.h/2,2,0,Math.PI*2,false);

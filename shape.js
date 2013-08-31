@@ -17,28 +17,20 @@ var Shape = function() {
     function cls(params) {
         var self = this;
 
-        //Various shape modifiers
+        //Shape parameters
         data = {
             colour: params.colour || '255, 255, 255',
             fill: params.fill || false,
-            border: params.border || false,
+            border: params.border || 0,
             length: params.length || 20,
-            width: params.width || 20
+            width: params.width || 20,
+            sides: params.sides || 4
         }
 
-        //Determine the type of shape
-        switch(params.type) {
-            case 'triangle':
-                data['points'] = [
-                    {x: -data.width/2, y: data.length/2},
-                    {x: data.width/2, y: data.length/2},
-                    {x: 0, y: -data.length/2}
-                ];
-                break;
-            case 'rectangle':
-            default:
-                //draw rectangle
-                break;
+        //Determine the points of the shape
+        data['points'] = [];
+        for(var i = 1; i <= data.sides; i++) {
+            data['points'].push({x: data.length/2 * Math.cos(2 * Math.PI * (i / data.sides)), y: data.width/2 * Math.sin(2 * Math.PI * (i / data.sides))});
         }
 
         /**
@@ -54,13 +46,13 @@ var Shape = function() {
             //Translate canvas to the point to draw
             ctx.translate(x, y);
 
-            //Rotate shape
-            ctx.rotate(Math.PI / 180 * (rotation || 0));
+            //Rotate shape - offset by 90 degrees so 0 is "up"
+            ctx.rotate(Math.PI / 180 * ((rotation || 0) - 90));
 
             //Start shape
             ctx.beginPath();
 
-            //Draw the points
+            //Draw the edges
             data.points.forEach(function(point) {
                 ctx.lineTo(point.x, point.y);
             });
@@ -75,6 +67,20 @@ var Shape = function() {
 
             //End shape
             ctx.closePath();
+
+            //Add border
+            if(data.border) {
+                var colourString = data.colour.split(',');
+
+                colourString[0] = 255 - colourString[0];
+                colourString[1] = 255 - colourString[1];
+                colourString[2] = 255 - colourString[2];
+                var myLineColour = colourString.join(',');
+
+                ctx.strokeStyle = 'rgb('+myLineColour+')';
+                ctx.lineWidth = data.border;
+                ctx.stroke();
+            }
 
             //Restore canvas state
             ctx.restore();
