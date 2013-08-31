@@ -18,7 +18,7 @@
             <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
             <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
 		</div>
-
+        <script src="shape.js"></script>
         <script>
         // TODO: collision detection strategy - http://jsfiddle.net/DV9Bw/1/     http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
 
@@ -276,70 +276,9 @@
         }
 
         /**
-         * Create a canvas shape
-         * @type {Shape}
-         * @param params
-         *      - points {Array} (Required)
-         *          - x {number}
-         *          - y {number}
-         *      - colour {string} - RGB X, Y, Z
-         *      - fill {boolean}
-         *      - border {boolean}
+         * Create a player
+         * @type {Player}
          */
-        var Shape = function() {
-            var data,
-                canvas = document.getElementById('canvas'),
-                ctx = canvas.getContext('2d');
-
-            function cls(params) {
-                var self = this;
-
-                data = {
-                    points: params.points,
-                    colour: params.colour || '255, 255, 255',
-                    fill: params.fill || false,
-                    border: params.border || false
-                }
-
-                this.draw = function(x, y, rotation) {
-                    //Save canvase state
-                    ctx.save();
-
-                    //Translate canvas to the point to draw
-                    ctx.translate(x, y);
-
-                    //Rotate shape
-                    ctx.rotate(Math.PI / 180 * (rotation || 0));
-
-                    //Start shape
-                    ctx.beginPath();
-
-                    //Draw the points
-                    data.points.forEach(function(point) {
-                        ctx.lineTo(point.x, point.y);
-                    });
-
-                    //Set the colour
-                    ctx.fillStyle = 'rgb(' + data.colour + ')';
-
-                    //Fill shape
-                    if(data.fill) {
-                        ctx.fill();
-                    }
-
-                    //@todo borders
-
-                    //End shape
-                    ctx.closePath();
-
-                    //Restore canvas state
-                    ctx.restore();
-                }
-
-            }
-            return cls;
-        }();
-
         var Player = function() {
             var finalScore;
             function cls(x,y,colour,id,direction,screenName,playerLuck) {
@@ -359,20 +298,7 @@
                 this.luck = playerLuck;
                 this.socketId = id;
                 this.shape = new Shape({
-                    points: [
-                        {
-                            x: -triangleSideLength/2,  //@todo make this not a constant..
-                            y: triangleSideLength/2
-                        },
-                        {
-                            x: triangleSideLength/2,
-                            y: triangleSideLength/2
-                        },
-                        {
-                            x: 0,
-                            y: -triangleSideLength/2
-                        }
-                    ],
+                    type: 'triangle',
                     colour: this.colour,
                     fill: true,
                     border: true
@@ -401,14 +327,14 @@
                         ctx.closePath();
                     }
 
-//                    if(socketId == this.socketId) {
-//                        self.mapY = self.y + Math.abs(mapOffsetY);
-//                        self.mapX = self.x + Math.abs(mapOffsetX);
+                    if(socketId == this.socketId) {
+                        self.mapY = self.y + Math.abs(mapOffsetY);
+                        self.mapX = self.x + Math.abs(mapOffsetX);
 //                        ctx.translate(self.x,self.y);
-//                    } else {
-//                        // everyone else
+                    } else {
+                        // everyone else
 //                        ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
-//                    }
+                    }
                     self.shape.draw(self.x, self.y, self.direction);
 
 
