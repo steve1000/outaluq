@@ -10,15 +10,14 @@
  *      - border {boolean}
  */
 var Shape = function() {
-    var data,
-        canvas = document.getElementById('canvas'),
+    var canvas = document.getElementById('canvas'),
         ctx = canvas.getContext('2d');
 
     function cls(params) {
         var self = this;
 
         //Shape parameters
-        data = {
+        this.data = {
             colour: params.colour || '255, 255, 255',
             fill: params.fill || false,
             border: params.border || 0,
@@ -27,16 +26,27 @@ var Shape = function() {
             sides: params.sides || 4,
             offsetX: params.offsetX || 0,
             offsetY: params.offsetY || 0,
+            offsetRotation: params.offsetRotation || 0,
             point: params.point || 0
         }
 
         //Determine the points of the shape
-        data['points'] = [];
-        for(var i = 1; i <= data.sides; i++) {
-            data['points'].push({
-                x: data.width/2 * Math.cos((2 * Math.PI * (i / data.sides) - (90 * Math.PI / 180))) + data.offsetX,
-                y: data.length/2 * Math.sin((2 * Math.PI * (i / data.sides) - (90 * Math.PI / 180))) + data.offsetY
+        self.data['points'] = [];
+        for(var i = 1; i <= self.data.sides; i++) {
+            self.data['points'].push({
+                x: self.data.width/2 * Math.cos((2 * Math.PI * (i / self.data.sides) - ((90 + self.data.offsetRotation) * Math.PI / 180))) + self.data.offsetX,
+                y: self.data.length/2 * Math.sin((2 * Math.PI * (i / self.data.sides) - ((90 + self.data.offsetRotation) * Math.PI / 180))) + self.data.offsetY
             });
+        }
+
+        /**
+         * Set the object colour
+         * @param colour
+         * @returns {Shape}
+         */
+        this.setColour = function(colour) {
+            self.data['colour'] = colour;
+            return this;
         }
 
         /**
@@ -59,15 +69,15 @@ var Shape = function() {
             ctx.beginPath();
 
             //Draw the edges
-            data.points.forEach(function(point) {
+            self.data.points.forEach(function(point) {
                 ctx.lineTo(point.x, point.y);
             });
 
             //Set the colour
-            ctx.fillStyle = 'rgb(' + data.colour + ')';
+            ctx.fillStyle = 'rgb(' + self.data.colour + ')';
 
             //Fill shape
-            if(data.fill) {
+            if(self.data.fill) {
                 ctx.fill();
             }
 
@@ -75,8 +85,8 @@ var Shape = function() {
             ctx.closePath();
 
             //Add border
-            if(data.border) {
-                var colourString = data.colour.split(',');
+            if(self.data.border) {
+                var colourString = self.data.colour.split(',');
 
                 colourString[0] = 255 - colourString[0];
                 colourString[1] = 255 - colourString[1];
@@ -84,15 +94,15 @@ var Shape = function() {
                 var myLineColour = colourString.join(',');
 
                 ctx.strokeStyle = 'rgb('+myLineColour+')';
-                ctx.lineWidth = data.border;
+                ctx.lineWidth = self.data.border;
                 ctx.stroke();
             }
 
             //Add a circle to the front of the shape
-            if(data.point) {
+            if(self.data.point) {
                 ctx.beginPath();
-                ctx.arc(0, -data.length/2, data.point, 0, Math.PI*2, false);
-                ctx.fillStyle = 'rgb(' + data.colour + ')';
+                ctx.arc(0, -self.data.length/2, self.data.point, 0, Math.PI*2, false);
+                ctx.fillStyle = 'rgb(' + self.data.colour + ')';
                 ctx.fill();
                 ctx.closePath();
             }

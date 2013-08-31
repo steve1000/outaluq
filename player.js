@@ -27,6 +27,14 @@ var Player = function() {
             border: 2,
             point: 3
         });
+        this.luckBar = new Shape({
+            sides: 4,
+            fill: true,
+            offsetX: 20,
+            length: 30,
+            width: 5,
+            offsetRotation: -45
+        });
 
         this.draw = function() {
 
@@ -62,25 +70,10 @@ var Player = function() {
 //                        ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
             }
             self.shape.draw(self.x, self.y, self.direction);
-
-            ctx.save();
-
-            if(socketId != this.socketId) {
-                // other players' luck bar
-                var r = 255 - (255 * (this.luck / 100));
-                var g = 255 * (this.luck / 100);
-                var b = 0;
-                if(this.luck > 0) {
-                    ctx.beginPath();
-                    ctx.fillStyle = 'rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.9)';
-                    ctx.fillRect(this.h/2,0,3,-this.luck/6);
-                    ctx.closePath();
-                }
-
-            }
-
-            // return the canvas to how it was
-            ctx.restore();
+            var r = 255 - (255 * (this.luck / 100));
+            var g = 255 * (this.luck / 100);
+            var b = 0;
+            self.luckBar.setColour('rgba('+Math.floor(r)+','+Math.floor(g)+','+Math.floor(b)+',0.9)').setLength(playerLuck * 3).draw(self.x, self.y, self.direction);
 
             this.update();
 

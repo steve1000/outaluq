@@ -244,7 +244,7 @@
          * The name and positions will be sent through from Cody's server
          */
 
-
+//@todo create "world" class
         function Pulse(px,py,colour,cb) {
             var pulse = {
                 transparency: 0.8,
@@ -277,7 +277,7 @@
         }
 
 
-
+        //@todo move to player class
         function moveX(x,y,step,angle,height,multiplier) {
             blahX = x;
             blahX -= step * Math.sin(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
@@ -288,7 +288,7 @@
                 return step * Math.sin(angle * Math.PI / 180);
             }
         }
-
+        //@todo move to player class
         function moveY(x,y,step,angle,height,multiplier) {
             blahY = y;
             blahY += step * Math.cos(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
