@@ -3,7 +3,6 @@
  * @type {Player}
  */
 var Player = function() {
-    var finalScore;
     function cls(x,y,colour,id,direction,screenName,playerLuck) {
 //@todo fix the params
         var self = this;
@@ -21,14 +20,14 @@ var Player = function() {
         this.luck = playerLuck;
         this.socketId = id;
         this.player = new Shape({
-            sides: 5,
+            edges: 5,
             colour: this.colour,
             fill: true,
             border: 2,
             point: 3
         });
         this.luckBar = new Shape({
-            sides: 4,
+            edges: 4,
             fill: true,
             offsetX: 20,
             width: 5,
