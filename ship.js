@@ -15,33 +15,42 @@ var Ship = function() {
 
         this.body = new Shape({
             edges: 30,
-            colour: self.colour || '255, 255, 255',
+            colour: self.colour,
             fill: true,
             border: 2,
             point: 3,
-            length: self.size || 20,
-            width: self.size || 20
+            length: self.size,
+            width: self.size
+        });
+        this.tail = new Shape({
+            edges: 3,
+            colour: self.colour,
+            fill: true,
+            border: 2,
+            length: self.size / 3,
+            width: self.size,
+            offsetY: self.size / 1.5
         });
         this.engineR = new Shape({
            edges: 4,
-            colour: self.colour || '255, 255, 255',
+            colour: self.colour,
             fill: true,
             border: 2,
             length: self.size * 1.5,
             width: self.size / 4,
             offsetX: -(self.size / 2),
-            offsetY: (self.size / 2),
+            offsetY: (self.size),
             offsetRotation: 45
         });
         this.engineL = new Shape({
            edges: 4,
-            colour: self.colour || '255, 255, 255',
+            colour: self.colour,
             fill: true,
             border: 2,
             length: self.size * 1.5,
             width: self.size / 4,
             offsetX: (self.size / 2),
-            offsetY: (self.size / 2),
+            offsetY: (self.size),
             offsetRotation: 45
         });
         this.thrusterR = new Shape({
@@ -49,7 +58,7 @@ var Ship = function() {
             colour: '255, 0, 0',
             fill: true,
             offsetX: self.size / 2,
-            offsetY: self.size * (4 / 3),
+            offsetY: self.size * (5.5 / 3),
             length: self.size * (5 / 4),
             width: self.size / 4,
             offsetRotation: 180
@@ -59,7 +68,7 @@ var Ship = function() {
             colour: '255, 0, 0',
             fill: true,
             offsetX: -(self.size / 2),
-            offsetY: self.size * (4 / 3),
+            offsetY: self.size * (5.5 / 3),
             length: self.size * (5 / 4),
             width: self.size / 4,
             offsetRotation: 180
@@ -67,6 +76,7 @@ var Ship = function() {
 
         this.draw = function(x, y, direction) {
             self.body.draw(x, y, direction);
+            self.tail.draw(x, y, direction);
             self.engineR.draw(x, y, direction);
             self.engineL.draw(x, y, direction);
 
