@@ -1,6 +1,8 @@
 /**
  * Create a player
  * @type {Player}
+ *
+ * @author Jarred Mack, Steve Kane
  */
 var Player = function() {
     function cls(x,y,colour,id,direction,screenName,playerLuck) {
@@ -19,12 +21,9 @@ var Player = function() {
         this.mapY = y;
         this.luck = playerLuck;
         this.socketId = id;
-        this.player = new Shape({
-            edges: 5,
+        this.player = new Ship({
             colour: this.colour,
-            fill: true,
-            border: 2,
-            point: 3
+            size: 20
         });
         this.luckBar = new Shape({
             edges: 4,
@@ -36,6 +35,7 @@ var Player = function() {
 
         this.draw = function() {
 
+            //@todo move to own method
             // have I been hit?
             var p = ctx.getImageData(self.x, self.y, 1, 1).data;
 
@@ -58,22 +58,10 @@ var Player = function() {
                 ctx.closePath();
             }
 
-            //@todo move this to its own method
-            if(socketId == this.socketId) {
-                self.mapY = self.y + Math.abs(mapOffsetY);
-                self.mapX = self.x + Math.abs(mapOffsetX);
-//                        ctx.translate(self.x,self.y);
-            } else {
-                // everyone else
-//                        ctx.translate(this.x + mapOffsetX,this.y + mapOffsetY);
-            }
             self.player.draw(self.x, self.y, self.direction);
-            self.luckBar.setColour(getHealthColour(this.luck))
+            self.luckBar.setColour(getHealthColour(luck)) //@todo localise
                 .setLength(luck/2)
-                .draw(self.x, self.y, self.direction);
-
-            this.update();
-
+                //.draw(self.x, self.y, self.direction);
         };
         this.updateCoords = function(x, y, direction) {
             var yMovement;
@@ -293,40 +281,42 @@ var Player = function() {
             this.direction = direction;
         };
         this.update = function() {
-
-            if(socketId == this.socketId) {
-                if(this.lastX == this.x && this.lastY == this.y && this.lastDirection == this.direction) {
+            self.draw();
+            if(socketId == self.socketId) {
+                if(self.lastX == self.x && self.lastY == self.y && self.lastDirection == self.direction) {
                     return;
                 }
-                this.lastDirection = this.direction;
-                this.lastX = this.x;
-                this.lastY = this.y;
+                self.lastDirection = self.direction;
+                self.lastX = self.x;
+                self.lastY = self.y;
+                self.mapY = self.y + Math.abs(mapOffsetY);
+                self.mapX = self.x + Math.abs(mapOffsetX);
 
                 socket.emit('playerMoved', {
                     coords: {
-                        x: this.mapX,
-                        y: this.mapY,
-                        vpx: mapOffsetX,
+                        x: self.mapX,
+                        y: self.mapY,
+                        vpx: mapOffsetX, //@todo localise
                         vpy: mapOffsetY
                     },
-                    direction: this.direction
+                    direction: self.direction
                 });
 
 //                            gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
             }
+
         };
         this.updatePlayerState = function(data,isMe) {
             switch (data.type) {
                 case 'luckUpdate' :
                     if(isMe) {
-                        log('testasdf');
-                        luck = data.data;
+                        luck = data.data; //@todo localise
                     } else {
                         this.luck = data.data;
                     }
                     break;
                 case 'itemsUpdate' :
-                    items = data.data;
+                    items = data.data; //@todo localise
                     break;
                 // and so on and so forth
             }

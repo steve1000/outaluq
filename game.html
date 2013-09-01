@@ -19,6 +19,7 @@
             <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
 		</div>
         <script src="shape.js"></script>
+        <script src="ship.js"></script>
         <script src="player.js"></script>
         <script>
         // TODO: collision detection strategy - http://jsfiddle.net/DV9Bw/1/     http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
@@ -398,7 +399,7 @@
                 if (!players.hasOwnProperty(key)) {
                     continue;
                 }
-                players[key].draw();
+                players[key].update();
             }
 
             displayScore();

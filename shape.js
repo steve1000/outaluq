@@ -12,6 +12,8 @@
  *      - offsetRotation {number}
  *      - border {number} - Border thickness
  *      - point {number} - Size of point
+ *
+ * @author Jarred Mack, Steve Kane
  */
 var Shape = function() {
     var canvas = document.getElementById('canvas'),
