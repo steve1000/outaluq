@@ -32,6 +32,14 @@ var Player = function() {
             width: 5,
             offsetRotation: -45
         });
+        this.orb = new Shape({
+            edges: 30,
+            fill: true,
+            offsetX: 60,
+            width: 5,
+            length: 5
+        });
+        this.rotationOffset = 0;
 
         this.draw = function() {
 
@@ -57,8 +65,13 @@ var Player = function() {
                 ctx.font = '20px Lucida Console';
                 ctx.closePath();
             }
+            //@todo other players not drawing properly with the viewport
 
+            self.rotationOffset += 3;
             self.player.draw(self.x, self.y, self.direction);
+            self.orb.draw(self.x, self.y, (self.rotationOffset % 360));
+            self.orb.draw(self.x, self.y, (self.rotationOffset + 120 % 360));
+            self.orb.draw(self.x, self.y, (self.rotationOffset + 240 % 360));
             self.luckBar.setColour(getHealthColour(luck)) //@todo localise
                 .setLength(luck/2)
                 //.draw(self.x, self.y, self.direction);
