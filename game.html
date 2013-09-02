@@ -150,7 +150,7 @@
                     myItems.push(data);
                     break;
                 case 'dead' :
-                    ded = true;
+                    players[data.socketId].kill(); //@todo make active player separate
                     // TODO: reset score to 0
                     // Show a screen with scores and show a button that has 'Retry'
                     break;
@@ -305,7 +305,7 @@
         }
 
         function displayScore() {
-
+//@todo move to game class
             if(!ded) {
                 var score = 'Score: ' + (Date.now() - startTime);
 

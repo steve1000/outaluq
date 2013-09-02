@@ -29,6 +29,7 @@ var Player = function() {
         this.luck = playerLuck;
         this.socketId = id;
         this.activePlayer = params.activePlayer || false;
+        this.dead = false;
         this.player = new Ship({
             colour: this.colour,
             size: 20
@@ -81,25 +82,22 @@ var Player = function() {
         };
 
         /**
-         * Check if a player is dead, and display the score if so
-         * @returns {boolean}
+         * Kill the player, and display their final score
          */
-        this.isDead = function() {
-            //@todo figure out if you're dead
-            if(ded) {
-                ctx.beginPath();
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = 'white';
-                ctx.fillText('You dedboi! you got: ' + globalScoreThatJarredWillNeedToRefactor,canvas.width / 2,canvas.height / 2);
-                ctx.font = '20px Lucida Console';
-                ctx.closePath();
-                return true;
-            }
-            return false;
-        }
+        this.kill = function() {
+            //@todo final score, move to game class
+            ctx.beginPath();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'white';
+            ctx.fillText('You dedboi! you got: ' + globalScoreThatJarredWillNeedToRefactor,canvas.width / 2,canvas.height / 2);
+            ctx.font = '20px Lucida Console';
+            ctx.closePath();
+            self.dead = true;
+        };
         this.updateCoords = function(x, y, direction) {
-            if(!self.isDead()) {
+            //@todo camera/viewport class?
+            if(!self.dead) {
                 var yMovement;
                 if(typeof direction === 'undefined') {
                     yMovement = x;
@@ -320,14 +318,14 @@ var Player = function() {
         this.update = function() {
             self.checkCollision();
             self.draw();
-            if(!self.isDead() && socketId == self.socketId) {
+            if(!self.dead && socketId == self.socketId) {
                 if(self.lastX == self.x && self.lastY == self.y && self.lastDirection == self.direction) {
                     return;
                 }
                 self.lastDirection = self.direction;
                 self.lastX = self.x;
                 self.lastY = self.y;
-                self.mapY = self.y + Math.abs(mapOffsetY);
+                self.mapY = self.y + Math.abs(mapOffsetY); //@todo localise
                 self.mapX = self.x + Math.abs(mapOffsetX);
 
                 socket.emit('playerMoved', {
