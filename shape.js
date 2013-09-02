@@ -16,11 +16,14 @@
  * @author Jarred Mack, Steve Kane
  */
 var Shape = function() {
-    var canvas = document.getElementById('canvas'),
-        ctx = canvas.getContext('2d');
+    var canvas, ctx;
 
     function cls(params) {
         var self = this;
+
+        //Global to shape
+        canvas = params.canvas || document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
 
         //Shape parameters
         this.data = {

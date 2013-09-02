@@ -18,7 +18,6 @@ var Ship = function() {
             colour: self.colour,
             fill: true,
             border: 2,
-            point: 3,
             length: self.size,
             width: self.size
         });

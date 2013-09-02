@@ -92,7 +92,7 @@
                     delete players[data.socketId];
                     break;
                 case 'playerJoined' :
-                    players[data.socketId] = new Player(data.data.coords.x,data.data.coords.y,data.data.colour,data.data.socketId, data.data.direction, data.data.username,data.data.luck);
+                    players[data.socketId] = new Player(data.data.coords.x,data.data.coords.y,data.data.colour,data.data.socketId, data.data.direction, data.data.username,data.data.luck, {});
                     break;
                 case 'dead' :
                     delete players[data.socketId];
@@ -130,12 +130,14 @@
 
         socket.on('updateItems',function(data){
             log('yo got items dawg');
+            //@todo point to player object
             items = data;
         });
 
 
         // update player
         socket.on('updatePlayer',function (data) {
+            //@todo point to player object and handle there
             // Cody is sending through a type which we'll see what we need to do with it
             switch (data.type) {
                 case 'initialise' :
@@ -172,7 +174,8 @@
                     p.coords.y += people[key].coords.vpy;
                 }
                 //log('socketId: ' + key);
-                players[key] = new Player(p.coords.x,p.coords.y,p.colour,key, p.direction, p.username, p.luck);
+                //@todo init active player
+                players[key] = new Player(p.coords.x,p.coords.y,p.colour,key, p.direction, p.username, p.luck, {});
             }
         }
 
