@@ -86,12 +86,14 @@
                         players[data.socketId].updatePlayerState(data,false);
                         break;
                     case 'disconnected' :
+                        players[data.socketId].shipSound.stop(); //@todo move this to a destructor function
                         delete players[data.socketId];
                         break;
                     case 'playerJoined' :
                         players[data.socketId] = new Player(data.data.coords.x,data.data.coords.y,data.data.colour,data.data.socketId, data.data.direction, data.data.username,data.data.luck);
                         break;
                     case 'dead' :
+                        players[data.socketId].shipSound.stop(); //@todo move this to a destructor function
                         delete players[data.socketId];
                         break;
                 }
@@ -120,7 +122,7 @@
                             removeWorldItem(pos);
                         }));
 
-                        gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
+                        gameSounds.get('pulse').at(data.data.mapX, data.data.mapY).fire();
                         break;
                 }
             });
@@ -344,6 +346,8 @@
                 this.mapY = y;
                 this.luck = playerLuck;
                 this.socketId = id;
+
+                this.shipSound = gameSounds.get('buzz').start();
 
                 this.draw = function() {
 
@@ -645,9 +649,12 @@
                                 }
                             }
                         }
-                    } else {
+                    } else { //other players
                         this.x = x;
                         this.y = y;
+
+
+                        this.shipSound.at(x, y);
                     }
                     this.direction = direction;
                 };
@@ -671,7 +678,7 @@
                             direction: this.direction
                         });
 
-                        gameSounds.ac.listener.setPosition(this.mapX, this.mapY, 0);
+                        gameSounds.playerPosition(this.mapX, this.mapY, 0);
                     }
 				};
                 this.updatePlayerState = function(data,isMe) {
@@ -962,7 +969,7 @@
                 if(!ded) {
                     pulses.push(new Pulse(players[socketId].mapX,players[socketId].mapY,players[socketId].colour));
                     playerEvent({type: 'pulse',data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
-                    gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
+                    gameSounds.get('pulse').at(players[socketId].mapX, players[socketId].mapY).fire();
                 }
             });
 
