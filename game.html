@@ -204,12 +204,12 @@
 				ctx0 = canvas0.getContext('2d');
 
                 //these could be altered to the actual size of our map (i.e. 10000x10000)
-                mapWidth = 10000;
-                mapHeight = 10000;
+                mapWidth = canvas0.width;
+                mapHeight = canvas0.height;
 
                 //sizes in pixels
                 cellSize = 50;  //about twice the width to allow space to move
-                wallChance = 20; //100 means entirely walls, 0 means no walls
+                wallChance = 10; //100 means entirely walls, 0 means no walls
 
                 wallWidth = cellSize / 2;
 
@@ -221,40 +221,11 @@
 
                 generateMap();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 playerPosX = canvas.width / 2;
                 playerPosY = canvas.height / 2;
 
                 // play the music
-                gameMusic.play();
+                //gameMusic.play();
                 // when the browser is ready, we'll send it to update()
                 requestAnimationFrame(update);
 			}
@@ -777,7 +748,6 @@
             }
             function displayItems() {
                 for(var i=0;i<items.length;i++) {
-
                     ctx.beginPath();
                     ctx.fillStyle = 'green';
                     ctx.fillRect(items[i].x,items[i].y,items[i].width,items[i].height);
@@ -800,15 +770,6 @@
 				ctx.save();
 				ctx.translate(mapOffsetX,mapOffsetY);
                 displayItems();
-                ctx.beginPath();
-                ctx.fillStyle = 'ffffff';
-                ctx.fillRect(150,150,100,100);
-                ctx.fillRect(350,350,50,50);
-                ctx.fillRect(750,750,50,50);
-                ctx.arc(100,350,40,0,Math.PI*2,false);
-                ctx.fill();
-                ctx.closePath();
-				//ctx.drawImage(imgObj,0,0);
 				ctx.restore();
 
                 for(var key in players) {
@@ -838,6 +799,7 @@
                 x = (x * cellSize) + wallWidth;
                 y1 = (y * cellSize);
                 y2 = (y+1) * cellSize;
+
                 ctx0.lineWidth = width;
                 ctx0.strokeStyle = color;
                 ctx0.beginPath();
@@ -987,7 +949,7 @@
 	<body style="background: #2b2b2b;">
 		<div id="wrap" style="position: relative;">
             <div style="width: 1000px; height: 500px; position: absolute; top: 0; left: 0; z-index: -1; overflow: hidden;">
-                <canvas width="8000" height="8000" id="canvas0" style="position: absolute;"></canvas>
+                <canvas width="5000" height="5000" id="canvas0" style="position: absolute;"></canvas>
             </div>
 
             <canvas width="1000" height="500" id="canvas1" style="float: left; background: transparent;"></canvas>
