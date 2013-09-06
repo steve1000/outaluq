@@ -205,6 +205,9 @@
 				canvas0 = document.getElementById('canvas0');
 				ctx0 = canvas0.getContext('2d');
 
+				
+				// MAP DRAW STUFF STARTS HERE
+				
                 //these could be altered to the actual size of our map (i.e. 10000x10000)
                 mapWidth = canvas0.width;
                 mapHeight = canvas0.height;
@@ -222,6 +225,8 @@
                 wallColor = "rgb(255, 255, 255)";
 
                 generateMap();
+				
+				// ENDS HERE
 
                 playerPosX = canvas.width / 2;
                 playerPosY = canvas.height / 2;
@@ -822,6 +827,9 @@
                 ctx0.stroke();
             }
 
+			
+			// NUKE ME :)
+			
             function generateMap(){
                 for (i=0; i<vertCells; i++){
                     subMapArray = new Array();
