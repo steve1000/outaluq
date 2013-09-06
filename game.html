@@ -318,7 +318,14 @@
                 this.luck = playerLuck;
                 this.socketId = id;
 
-                this.shipSound = gameSounds.get('buzz').start();
+                this.shipSound = function() {
+                    if(this.socketId == socketId) {
+                        return gameSounds.get('playerSound').start();
+                    } else {
+                        return gameSounds.get('otherPlayerSound').start();
+                    }
+
+                };
 
                 this.draw = function() {
 
