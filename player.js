@@ -12,7 +12,7 @@ var Player = function() {
         var self = this;
 
         //Global to Player
-        canvas = params.canvas || document.getElementById('canvas');
+        canvas = params.canvas || document.getElementById('canvas1');
         ctx = canvas.getContext('2d');
 
         this.x = x;

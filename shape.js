@@ -22,7 +22,7 @@ var Shape = function() {
         var self = this;
 
         //Global to shape
-        canvas = params.canvas || document.getElementById('canvas');
+        canvas = params.canvas || document.getElementById('canvas1');
         ctx = canvas.getContext('2d');
 
         //Shape parameters
