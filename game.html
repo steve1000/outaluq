@@ -324,10 +324,11 @@
 
     //@todo move to player class
     function moveX(x, y, step, angle, height, multiplier) {
-        blahX = x;
-        blahX -= step * Math.sin(angle * Math.PI / 180) + ( (height + 1) * multiplier);
-        var p = ctx.getImageData(blahX, y, 1, 1).data;
-        if (p[0] == 255) {
+        blahX = x + Math.abs(mapOffsetX);
+        blahX -= step * Math.sin(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
+        y = y + Math.abs(mapOffsetY);
+        var p = ctx0.getImageData(blahX, y, 1, 1).data;
+        if(p[0] == 255) {
             return 0;
         } else {
             return step * Math.sin(angle * Math.PI / 180);
@@ -335,9 +336,10 @@
     }
     //@todo move to player class
     function moveY(x, y, step, angle, height, multiplier) {
-        blahY = y;
-        blahY += step * Math.cos(angle * Math.PI / 180) + ( (height + 1) * multiplier);
-        var p = ctx.getImageData(x, blahY, 1, 1).data;
+        blahY = y + Math.abs(mapOffsetY);
+        blahY += step * Math.cos(angle * Math.PI / 180) + ( (height + 1) * multiplier) ;
+        x = x + Math.abs(mapOffsetX);
+        var p = ctx0.getImageData(x, blahY, 1, 1).data;
         if (p[0] == 255 && p[1] == 255 && p[2] == 255) {
             return 0;
         } else {

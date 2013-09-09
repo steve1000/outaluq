@@ -73,9 +73,9 @@ var Player = function() {
             self.rotationOffset += 3;
             //@todo localise mapOffsetX, and implement self.activePlayer
             self.player.draw(self.x + (self.socketId != socketId ? mapOffsetX : 0), self.y + (self.socketId != socketId ? mapOffsetY : 0), self.direction);
-            self.orb.draw(self.x, self.y, (self.rotationOffset % 360));
-            self.orb.draw(self.x, self.y, (self.rotationOffset + 120 % 360));
-            self.orb.draw(self.x, self.y, (self.rotationOffset + 240 % 360));
+//            self.orb.draw(self.x, self.y, (self.rotationOffset % 360));
+//            self.orb.draw(self.x, self.y, (self.rotationOffset + 120 % 360));
+//            self.orb.draw(self.x, self.y, (self.rotationOffset + 240 % 360));
             self.luckBar.setColour(getHealthColour(luck)) //@todo localise
                 .setLength(luck/2)
                 .draw(self.x, self.y, self.direction);
