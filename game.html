@@ -167,6 +167,16 @@
                 // TODO: reset score to 0
                 // Show a screen with scores and show a button that has 'Retry'
                 break;
+            case 'map':
+                console.log(data);
+                data.data.map.forEach(function(row, i) {
+                    row.forEach(function(col, j) {
+                        if(col) {
+                            drawBlock(j, i, data.data.width, data.data.colour);
+                        }
+                    });
+                });
+                break;
         }
 
     });
@@ -221,29 +231,6 @@
         // background canvas
         canvas0 = document.getElementById('canvas0');
         ctx0 = canvas0.getContext('2d');
-
-
-        // MAP DRAW STUFF STARTS HERE
-
-        //these could be altered to the actual size of our map (i.e. 10000x10000)
-        mapWidth = canvas0.width;
-        mapHeight = canvas0.height;
-
-        //sizes in pixels
-        cellSize = 50;  //about twice the width to allow space to move
-        wallChance = 10; //100 means entirely walls, 0 means no walls
-
-        wallWidth = cellSize / 2;
-
-        horizCells = mapWidth / cellSize;
-        vertCells = mapHeight / cellSize;
-        numberUnoccupied = 0;
-        maxNumberUnoccupied = (horizCells - 2) * (vertCells - 2);
-        wallColor = "rgb(255, 255, 255)";
-
-        generateMap();
-
-        // ENDS HERE
 
         playerPosX = canvas.width / 2;
         playerPosY = canvas.height / 2;
@@ -425,11 +412,11 @@
     }
     function drawBlock(x, y, width, color) {
     //@todo shape.js
-        x = (x * cellSize) + wallWidth;
-        y1 = (y * cellSize);
-        y2 = (y + 1) * cellSize;
+        var x = (x * width) + width / 2;
+        var y1 = (y * width);
+        var y2 = (y + 1) * width;
 
-        ctx0.lineWidth = width;
+        ctx0.lineWidth = width * 2;
         ctx0.strokeStyle = color;
         ctx0.beginPath();
         ctx0.moveTo(x, y1);
@@ -451,14 +438,6 @@
         ctx.save();
         ctx.translate(mapOffsetX, mapOffsetY);
         displayItems();
-        ctx.beginPath();
-        ctx.fillStyle = 'ffffff';
-        ctx.fillRect(150, 150, 100, 100);
-        ctx.fillRect(350, 350, 50, 50);
-        ctx.fillRect(750, 750, 50, 50);
-        ctx.arc(100, 350, 40, 0, Math.PI * 2, false);
-        ctx.fill();
-        ctx.closePath();
         //ctx.drawImage(imgObj,0,0);
         ctx.restore();
 
@@ -474,30 +453,6 @@
         canvas0.style.left = mapOffsetX + 'px';
         canvas0.style.top = mapOffsetY + 'px';
 
-    }
-
-    function generateMap() {
-        for (i = 0; i < vertCells; i++) {
-            subMapArray = new Array();
-            for (j = 0; j < horizCells; j++) {
-                if (i == 0 || i == vertCells - 1 || j == 0 || j == horizCells - 1) {
-                    //if it's a border, draw a wall
-                    //drawBlock((j*cellSize)+wallWidth, (i*cellSize), (j*cellSize)+wallWidth, (i+1)*cellSize, wallWidth*2, wallColor);
-                    drawBlock(j, i, wallWidth * 2, wallColor);
-                    subMapArray[j] = 1;
-                } else if (Math.random() > ((100 - wallChance) / 100)) {
-                    //otherwise, draw at random
-                    //drawBlock((j*cellSize)+wallWidth, (i*cellSize), (j*cellSize)+wallWidth, (i+1)*cellSize, wallWidth*2, wallColor);
-                    drawBlock(j, i, wallWidth * 2, wallColor);
-                    subMapArray[j] = 1;
-                } else {
-                    //or don't
-                    subMapArray[j] = 0;
-                    numberUnoccupied++;
-                }
-            }
-            mapArray[i] = subMapArray;
-        }
     }
 
     /**
