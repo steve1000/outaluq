@@ -412,16 +412,22 @@
     }
     function drawBlock(x, y, width, color) {
     //@todo shape.js
-        var x = (x * width) + width / 2;
-        var y1 = (y * width);
-        var y2 = (y + 1) * width;
-
-        ctx0.lineWidth = width * 2;
-        ctx0.strokeStyle = color;
+//        var x = (x * width) + width / 2;
+//        var y1 = (y * width);
+//        var y2 = (y + 1) * width;
+//
+//        ctx0.lineWidth = width * 2;
+//        ctx0.strokeStyle = color;
+//        ctx0.beginPath();
+//        ctx0.moveTo(x, y1);
+//        ctx0.lineTo(x, y2);
+//        ctx0.stroke();
+        var xpos = x * width;
+        var ypos = y * width;
         ctx0.beginPath();
-        ctx0.moveTo(x, y1);
-        ctx0.lineTo(x, y2);
-        ctx0.stroke();
+        ctx0.fillStyle = 'white';
+        ctx0.fillRect(xpos, ypos, width, width);
+        ctx0.closePath();
     }
 
     /**
