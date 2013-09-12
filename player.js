@@ -78,7 +78,7 @@ var Player = function() {
 //            self.orb.draw(self.x, self.y, (self.rotationOffset + 240 % 360));
             self.luckBar.setColour(getHealthColour(luck)) //@todo localise
                 .setLength(luck/2)
-                .draw(self.x, self.y, self.direction);
+                .draw(self.x + (self.socketId != socketId ? mapOffsetX : 0), self.y + (self.socketId != socketId ? mapOffsetY : 0), self.direction);
         };
 
         /**
