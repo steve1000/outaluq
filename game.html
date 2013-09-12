@@ -482,12 +482,7 @@
      * N.B. the event listener is on the <body> tag.
      * This should probably be moved
      */
-	 
-	 kd.ONE.down(function(){
-		// Do stuff if player has an item
-		// Check the array of myItems[0] 
-	 });
-
+	
     kd.LEFT.down(function () {
         players[socketId].lastX = players[socketId].x;
         players[socketId].lastDirection = players[socketId].direction;
@@ -541,6 +536,21 @@
     //                    gameSounds.getSound('pulse', players[socketId].mapX, players[socketId].mapY).start();
         }
     });
+	
+	// Do stuff if player has an item
+	// Check the array of myItems[0] (key minus 1 position)
+	kd.ONE.down(function(){   myItems[0] ? playerEvent({type: myItems[0][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.TWO.down(function(){   myItems[1] ? playerEvent({type: myItems[1][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.THREE.down(function(){ myItems[2] ? playerEvent({type: myItems[2][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.FOUR.down(function(){  myItems[3] ? playerEvent({type: myItems[3][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.FIVE.down(function(){  myItems[4] ? playerEvent({type: myItems[4][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.SIX.down(function(){   myItems[5] ? playerEvent({type: myItems[5][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.SEVEN.down(function(){ myItems[6] ? playerEvent({type: myItems[6][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.EIGHT.down(function(){ myItems[7] ? playerEvent({type: myItems[7][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.NINE.down(function(){  myItems[8] ? playerEvent({type: myItems[8][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	kd.ZERO.down(function(){  myItems[9] ? playerEvent({type: myItems[9][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }); });
+	
+	
 
     // This update loop is the heartbeat of Keydrown
     kd.run(function () {
