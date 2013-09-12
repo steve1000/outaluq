@@ -177,8 +177,7 @@
                 players[data.socketId].updatePlayerState(data, true);
                 break;
             case 'updateInventory' :
-                myItems.push(data);
-				log(data);
+                myItems.push(data.data);				
                 break;
             case 'dead' :
                 players[data.socketId].kill(); //@todo make active player separate
@@ -461,13 +460,21 @@
             }
             players[key].update();
         }
-
+		displayInventory();
         displayScore();
         displayLuck();
         canvas0.style.left = mapOffsetX + 'px';
         canvas0.style.top = mapOffsetY + 'px';
 
     }
+	
+	function displayInventory() {
+		for(var i=0;i<myItems.length;i++){
+			var el = document.getElementById('i'+(i+1))
+			el.style.backgroundColor = myItems[i][0].colour;
+			el.innerHTML = (i+1);
+		}
+	}
 
     /**
      * moveTriangle function
@@ -475,6 +482,11 @@
      * N.B. the event listener is on the <body> tag.
      * This should probably be moved
      */
+	 
+	 kd.ONE.down(function(){
+		// Do stuff if player has an item
+		// Check the array of myItems[0] 
+	 });
 
     kd.LEFT.down(function () {
         players[socketId].lastX = players[socketId].x;
