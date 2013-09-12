@@ -4,24 +4,41 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title></title>
-    <script src="http://localhost:8080/socket.io/socket.io.js"></script>
+    <script src="http://192.168.5.111:8080/socket.io/socket.io.js"></script>
     <script src="keydrown.js"></script>
     <script src="store.js"></script>
     <script src="8bit.js"></script>
     <script src="8bitplay.js"></script>
     <script src="../audio/gamesounds.js"></script>
-
+	<style>
+		table{width:1000px;}
+		td{padding:20px;color:black;background:#cccccc;text-align:center;}
+	</style>
 </head>
 <body style="background: #2b2b2b;">
 <div id="wrap" style="position: relative;">
     <div style="width: 1000px; height: 500px; position: absolute; top: 0; left: 0; z-index: -1; overflow: hidden;">
         <canvas width="5000" height="5000" id="canvas0" style="position: absolute;"></canvas>
     </div>
-
     <canvas width="1000" height="500" id="canvas1" style="float: left; background: transparent;"></canvas>
-
     <span id="data" style="font-family: courier; font-size: 12px; color: white;"></span>
     <span id="theirdata" style="font-family: courier; font-size: 12px; color: white;"></span>
+	<div style="clear: both;">
+		<table style="width: 1000px;">
+			<tr>
+				<td id="i1">?</td>
+				<td id="i2">?</td>
+				<td id="i3">?</td>
+				<td id="i4">?</td>
+				<td id="i5">?</td>
+				<td id="i6">?</td>
+				<td id="i7">?</td>
+				<td id="i8">?</td>
+				<td id="i9">?</td>
+				<td id="i0">?</td>
+			</tr>
+		</table>
+	</div>
 </div>
 <script src="shape.js"></script>
 <script src="ship.js"></script>
@@ -57,7 +74,7 @@
     var lastScoreDisplayed;
     var luck = 100;
     var socketId;
-    var socket = io.connect('http://localhost:8080'),
+    var socket = io.connect('http://192.168.5.111:8080'),
             username;
     var people;
     var worldItems = [];
@@ -159,8 +176,9 @@
             case 'luckUpdate' :
                 players[data.socketId].updatePlayerState(data, true);
                 break;
-            case 'updateItems' :
+            case 'updateInventory' :
                 myItems.push(data);
+				log(data);
                 break;
             case 'dead' :
                 players[data.socketId].kill(); //@todo make active player separate
@@ -412,16 +430,13 @@
     }
     function drawBlock(x, y, width, color) {
     //@todo shape.js
-        var x = (x * width) + width / 2;
-        var y1 = (y * width);
-        var y2 = (y + 1) * width;
-
-        ctx0.lineWidth = width * 2;
-        ctx0.strokeStyle = color;
-        ctx0.beginPath();
-        ctx0.moveTo(x, y1);
-        ctx0.lineTo(x, y2);
-        ctx0.stroke();
+        var xpos = x * width;
+		var ypos = y * width;
+		ctx0.beginPath();
+		ctx0.fillStyle = 'white';
+		ctx0.fillRect(xpos,ypos,width,width);
+		ctx0.closePath();
+		
     }
 
     /**
