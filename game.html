@@ -192,6 +192,9 @@
                     });
                 });
                 break;
+            case 'itemUsed':
+                    data.data();
+                break;
         }
 
     });
@@ -426,7 +429,6 @@
         }
     }
     function drawBlock(x, y, width, color) {
-    //@todo shape.js
         var xpos = x * width;
 		var ypos = y * width;
 		ctx0.beginPath();
