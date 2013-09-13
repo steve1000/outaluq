@@ -84,6 +84,7 @@
     var items = [];
     var myItems = [];
     var gs;
+    var temp;
 
     // second canvas stuff
     var canvas0;
@@ -176,7 +177,7 @@
                 players[data.socketId].updatePlayerState(data, true);
                 break;
             case 'updateInventory' :
-                myItems.push(data.data);				
+                myItems = data.data;
                 break;
             case 'dead' :
                 players[data.socketId].kill(); //@todo make active player separate
@@ -224,8 +225,6 @@
             }
             //log('socketId: ' + key);
             //@todo init active player
-            players[key] = new Player(p.coords.x, p.coords.y, p.colour, key, p.direction, p.username, p.luck, {});
-
             gs = new GameSounds({
                 shipSound: {wave:0,freq:{points:[[0,114,1]]},vol:{points:[[0,5,1]]},mod:{wave:0,freq:26,gain:11}},
                 itemPickup: {wave:1,duration:0.9,freq:{points:[[0,646,1],[0.1,342,1],[0.4,304,1]]},vol:{points:[[0,0,1],[0.1,0.68,1],[0.2,0.76,1],[0.3,0.6,1],[0.5,0.48,1],[0.6,0.68,1],[0.9,0,1]]},mod:{wave:1,freq:43,gain:41}},
@@ -241,6 +240,8 @@
             });
 
             gs.setVolume(100);
+
+            players[key] = new Player(p.coords.x, p.coords.y, p.colour, key, p.direction, p.username, p.luck, {});
 
         }
     }
@@ -492,9 +493,16 @@
     }
 	
 	function displayInventory() {
+
+        for(var i=0;i<10;i++) {
+            var el = document.getElementById('i'+(i+1))
+            el.style.backgroundColor = '#cccccc';
+            el.innerHTML = '?';
+        }
+
 		for(var i=0;i<myItems.length;i++){
 			var el = document.getElementById('i'+(i+1))
-			el.style.backgroundColor = myItems[i][0].colour;
+			el.style.backgroundColor = myItems[i].colour;
 			el.innerHTML = (i+1);
             if(i+1 == 10) {
                 el.innerHTML = (0);
@@ -555,16 +563,16 @@
 	
 	// Do stuff if player has an item
 	// Check the array of myItems[0] (key minus 1 position)
-	kd.ONE.down(function(){   myItems[0] ? useItem(0) :''; });
-	kd.TWO.down(function(){   myItems[0] ? useItem(0) :''; });
-	kd.THREE.down(function(){ myItems[0] ? useItem(0) :''; });
-	kd.FOUR.down(function(){  myItems[0] ? useItem(0) :''; });
-	kd.FIVE.down(function(){  myItems[0] ? useItem(0) :''; });
-	kd.SIX.down(function(){   myItems[0] ? useItem(0) :''; });
-	kd.SEVEN.down(function(){ myItems[0] ? useItem(0) :''; });
-	kd.EIGHT.down(function(){ myItems[0] ? useItem(0) :''; });
-	kd.NINE.down(function(){  myItems[0] ? useItem(0) :''; });
-	kd.ZERO.down(function(){  myItems[0] ? useItem(0) :''; });
+	kd.ONE.up(function(){   myItems[0] ? useItem(0) :''; });
+	kd.TWO.up(function(){   myItems[0] ? useItem(1) :''; });
+	kd.THREE.up(function(){ myItems[0] ? useItem(2) :''; });
+	kd.FOUR.up(function(){  myItems[0] ? useItem(3) :''; });
+	kd.FIVE.up(function(){  myItems[0] ? useItem(4) :''; });
+	kd.SIX.up(function(){   myItems[0] ? useItem(5) :''; });
+	kd.SEVEN.up(function(){ myItems[0] ? useItem(6) :''; });
+	kd.EIGHT.up(function(){ myItems[0] ? useItem(7) :''; });
+	kd.NINE.up(function(){  myItems[0] ? useItem(8) :''; });
+	kd.ZERO.up(function(){  myItems[0] ? useItem(9) :''; });
 
     // This update loop is the heartbeat of Keydrown
     kd.run(function () {
@@ -573,6 +581,15 @@
 
     function useItem(slot) {
         socket.emit('useItem', {slot:slot});
+        if(myItems[slot].name == 'Pulse') {
+            pulses.push(new Pulse(players[socketId].mapX, players[socketId].mapY, players[socketId].colour));
+            playerEvent({type: 'pulse', data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
+            gs.get('pulse').vol(0.5).at(players[socketId].x,players[socketId].y).fire();
+        }
+        myItems.splice(slot,1);
+
+
+
     }
 
     function playerEvent(data) {
