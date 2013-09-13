@@ -193,7 +193,14 @@
                 });
                 break;
             case 'itemUsed':
-                    data.data();
+                var tmp = '';
+                for(key in data.data.effect) {
+                    tmp = eval(key);
+                    eval(key + '= data.data.effect[key]');
+                };
+                setTimeout(function() {
+                    eval(key + ' = ' + tmp);
+                }, data.data.duration * 1000);
                 break;
         }
 
