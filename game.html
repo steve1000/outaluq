@@ -193,6 +193,16 @@
                     });
                 });
                 break;
+            case 'itemUsed':
+                var tmp = '';
+                for(key in data.data.effect) {
+                    tmp = eval(key);
+                    eval(key + '= data.data.effect[key]');
+                };
+                setTimeout(function() {
+                    eval(key + ' = ' + tmp);
+                }, data.data.duration * 1000);
+                break;
         }
 
     });
@@ -443,7 +453,6 @@
         }
     }
     function drawBlock(x, y, width, color) {
-    //@todo shape.js
         var xpos = x * width;
 		var ypos = y * width;
 		ctx0.beginPath();
