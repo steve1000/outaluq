@@ -30,7 +30,7 @@ var Player = function() {
         this.socketId = id;
         this.activePlayer = params.activePlayer || false;
         this.dead = false;
-        this.playerSound = gs.get('shipSound').vol((id == socketId) ? 0.0 : 0.1 ).start();
+        this.playerSound = gs.get('shipSound').vol((id == socketId) ? 0.0 : 0.0 ).start();
         this.player = new Ship({
             colour: this.colour,
             size: 20

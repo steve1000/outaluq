@@ -117,14 +117,13 @@
                 players[data.socketId].updatePlayerState(data, false);
                 break;
             case 'disconnected' :
-                players[data.socketId].shipSound.stop();
                 delete players[data.socketId];
                 break;
             case 'playerJoined' :
                 players[data.socketId] = new Player(data.data.coords.x, data.data.coords.y, data.data.colour, data.data.socketId, data.data.direction, data.data.username, data.data.luck, {});
                 break;
             case 'dead' :
-                players[data.socketId].shipSound.stop();
+                gs.get('ded').vol(0.5).at(players[socketId].x,players[socketId].y).fire();
                 delete players[data.socketId];
                 break;
         }
@@ -152,8 +151,7 @@
                 pulses.push(new Pulse(data.data.mapX, data.data.mapY, data.data.colour, function () {
                     removeWorldItem(pos);
                 }));
-
-    //                        gameSounds.getSound('pulse', data.data.mapX, data.data.mapY).start();
+                    gs.get('pulse').at(data.data.mapX,data.data.mapY).fire();
                 break;
         }
     });
@@ -585,10 +583,10 @@
             pulses.push(new Pulse(players[socketId].mapX, players[socketId].mapY, players[socketId].colour));
             playerEvent({type: 'pulse', data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} });
             gs.get('pulse').vol(0.5).at(players[socketId].x,players[socketId].y).fire();
+        } else if(myItems[slot].name == 'Speed') {
+            gs.get('speedBoostUp').vol(0.5).at(players[socketId].x,players[socketId].y).fire();
         }
         myItems.splice(slot,1);
-
-
 
     }
 
@@ -599,7 +597,7 @@
     window.onload = init;
 
     function log(blah) {
-        console.log(blah);
+        //console.log(blah);
     }
 
 
