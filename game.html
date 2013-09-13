@@ -87,8 +87,6 @@
     // second canvas stuff
     var canvas0;
     var ctx0;
-    var imgObj = new Image();
-    imgObj.src = 'barbie.jpg';
 
     socket.on('connect', function () {
         if (!store.get('username')) {
@@ -451,7 +449,6 @@
         ctx.save();
         ctx.translate(mapOffsetX, mapOffsetY);
         displayItems();
-        //ctx.drawImage(imgObj,0,0);
         ctx.restore();
 
         for (var key in players) {
