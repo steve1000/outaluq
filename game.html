@@ -470,6 +470,9 @@
 			var el = document.getElementById('i'+(i+1))
 			el.style.backgroundColor = myItems[i][0].colour;
 			el.innerHTML = (i+1);
+            if(i+1 == 10) {
+                el.innerHTML = (0);
+            }
 		}
 	}
 
@@ -514,17 +517,6 @@
         }
     });
 
-
-    kd.DOWN.down(function () {
-        // N.B. I've taken the down button out of the controls for the moment
-        // because it was causing a bit of havoc and unneeded code for the collision
-        // detection
-
-    //                players[socketId].lastY = players[socketId].y;
-    //                moveSteps = Math.abs(moveSteps);
-    //                players[socketId].updateCoords(moveSteps,players[socketId].direction);
-    });
-
     kd.P.up(function () {
         // trigger pulse for player
         if (!ded) {
@@ -536,21 +528,25 @@
 	
 	// Do stuff if player has an item
 	// Check the array of myItems[0] (key minus 1 position)
-	kd.ONE.down(function(){   myItems[0] ? playerEvent({type: myItems[0][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.TWO.down(function(){   myItems[1] ? playerEvent({type: myItems[1][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.THREE.down(function(){ myItems[2] ? playerEvent({type: myItems[2][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.FOUR.down(function(){  myItems[3] ? playerEvent({type: myItems[3][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.FIVE.down(function(){  myItems[4] ? playerEvent({type: myItems[4][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.SIX.down(function(){   myItems[5] ? playerEvent({type: myItems[5][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.SEVEN.down(function(){ myItems[6] ? playerEvent({type: myItems[6][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.EIGHT.down(function(){ myItems[7] ? playerEvent({type: myItems[7][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.NINE.down(function(){  myItems[8] ? playerEvent({type: myItems[8][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
-	kd.ZERO.down(function(){  myItems[9] ? playerEvent({type: myItems[9][0].event, data: {mapX: players[socketId].mapX, mapY: players[socketId].mapY, colour: players[socketId].colour} }):''; });
+	kd.ONE.down(function(){   myItems[0] ? useItem(0) :''; });
+	kd.TWO.down(function(){   myItems[0] ? useItem(0) :''; });
+	kd.THREE.down(function(){ myItems[0] ? useItem(0) :''; });
+	kd.FOUR.down(function(){  myItems[0] ? useItem(0) :''; });
+	kd.FIVE.down(function(){  myItems[0] ? useItem(0) :''; });
+	kd.SIX.down(function(){   myItems[0] ? useItem(0) :''; });
+	kd.SEVEN.down(function(){ myItems[0] ? useItem(0) :''; });
+	kd.EIGHT.down(function(){ myItems[0] ? useItem(0) :''; });
+	kd.NINE.down(function(){  myItems[0] ? useItem(0) :''; });
+	kd.ZERO.down(function(){  myItems[0] ? useItem(0) :''; });
 
     // This update loop is the heartbeat of Keydrown
     kd.run(function () {
         kd.tick();
     });
+
+    function useItem(slot) {
+        socket.emit('useItem', {slot:slot});
+    }
 
     function playerEvent(data) {
         socket.emit('worldEvent', data);
