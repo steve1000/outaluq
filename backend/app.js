@@ -2,7 +2,7 @@
  * Globals
  * =================
  */
-var io = require('socket.io').listen(8008, {log: false});
+var io = require('socket.io').listen(8008, { log: false });
 
 var players = {};
 var mapItems = new Array();
@@ -40,28 +40,28 @@ var itemConstructors = [
         },
         duration: 3
     }
-//    {
-//        name: 'Invisibility',
-//        threshold: 'mid',
-//        use: {
-//
-//        }
-//    },
-//    {
-//        name: 'Noclip',
-//        threshold: 'high',
-//        use: {
-//
-//        }
-//    }
-//    {
-//        name: 'Shot',
-//        range: 100,
-//        threshold: 'low',
-//        use: function() {
-//            console.log('Shot used');
-//        }
-//    }
+    //    {
+    //        name: 'Invisibility',
+    //        threshold: 'mid',
+    //        use: {
+    //
+    //        }
+    //    },
+    //    {
+    //        name: 'Noclip',
+    //        threshold: 'high',
+    //        use: {
+    //
+    //        }
+    //    }
+    //    {
+    //        name: 'Shot',
+    //        range: 100,
+    //        threshold: 'low',
+    //        use: function() {
+    //            console.log('Shot used');
+    //        }
+    //    }
 ];
 
 /* =================
@@ -73,7 +73,7 @@ var itemConstructors = [
  * Player Inventory
  * @constructor
  */
-var Inventory = function() {
+var Inventory = function () {
     function cls() {
         var self = this;
 
@@ -84,8 +84,8 @@ var Inventory = function() {
          * Add an item to the inventory
          * @param {Item} item
          */
-        this.addItem = function(item) {
-            if(self.isNotFull()) {
+        this.addItem = function (item) {
+            if (self.isNotFull()) {
                 self.items.push(item);
             }
         }
@@ -95,8 +95,8 @@ var Inventory = function() {
          * @param {int} slot
          * @returns {Object|bool}
          */
-        this.useItem = function(slot) {
-            if(typeof self.items[slot] != 'undefined') {
+        this.useItem = function (slot) {
+            if (typeof self.items[slot] != 'undefined') {
                 var item = self.items.splice(slot, 1);
                 return {
                     riskLevel: item[0].riskLevel,
@@ -111,7 +111,7 @@ var Inventory = function() {
          * Check if the inventory is already full
          * @returns {boolean}
          */
-        this.isNotFull = function() {
+        this.isNotFull = function () {
             return (self.items.length < self.inventorySize);
         }
 
@@ -119,23 +119,23 @@ var Inventory = function() {
          * Return the current inventory
          * @returns {Array
          */
-        this.get = function() {
+        this.get = function () {
             var toReturn = new Array();
-            self.items.forEach(function(item) {
+            self.items.forEach(function (item) {
                 toReturn.push(item.get());
             });
             return toReturn;
         }
     }
     return cls;
-}();
+} ();
 
 /**
  * Inventory Item
  * @param array params {int range, bool area, function use, string name, string threshold}
  * @constructor
  */
-var Item = function() {
+var Item = function () {
 
     function cls(params) {
         var self = this;
@@ -153,7 +153,7 @@ var Item = function() {
         this.riskLevel = 0;
         this.colour = '';
 
-        switch(params.threshold) {
+        switch (params.threshold) {
             case 'low':
                 self.highestLuck = 30; //Highest luck value needed to use an item
                 self.colour = '#2B2';
@@ -173,14 +173,14 @@ var Item = function() {
          * Initialise the item
          * @returns {Item}
          */
-        this.init = function() {
+        this.init = function () {
             return this.generateRisk().generateLocation();
         }
 
         /**
          * Call this item's use() callback
          */
-        this.useItem = function() {
+        this.useItem = function () {
             return self.use;
         };
 
@@ -188,7 +188,7 @@ var Item = function() {
          * Generate the risk level for this item
          * @returns {Item}
          */
-        this.generateRisk = function() {
+        this.generateRisk = function () {
             self.riskLevel = random(self.lowestLuck, self.highestLuck);
             return this;
         };
@@ -197,12 +197,12 @@ var Item = function() {
          * Generate the item location
          * @returns {Item}
          */
-        this.generateLocation = function() {
+        this.generateLocation = function () {
             var x, y;
             do {
                 x = random(0, Map.rows);
                 y = random(0, Map.cols);
-            } while(Map.check(x, y) || checkMapItems(x * Map.cellSize, y * Map.cellSize));
+            } while (Map.check(x, y) || checkMapItems(x * Map.cellSize, y * Map.cellSize));
 
             self.x = x * Map.cellSize + (random(0, Map.cellSize - self.width));
             self.y = y * Map.cellSize + (random(0, Map.cellSize - self.width)); //Increment to scaled map size, and randomise the position within the cell
@@ -215,7 +215,7 @@ var Item = function() {
          * @param {int} y
          * @returns {boolean}
          */
-        this.checkCoordinates = function(x, y) {
+        this.checkCoordinates = function (x, y) {
             var toleranceX = self.width * 0.25;
             var toleranceY = self.height * 0.25;
             return (
@@ -228,7 +228,7 @@ var Item = function() {
          * Accessor method
          * @returns {{area: boolean, range: boolean, name: string, colour: string}}
          */
-        this.get = function() {
+        this.get = function () {
             return {
                 area: self.area,
                 range: self.range,
@@ -244,8 +244,8 @@ var Item = function() {
      * @param y
      */
     function checkMapItems(x, y) {
-        mapItems.forEach(function(item) {
-            if(item.x == x && item.y == y) {
+        mapItems.forEach(function (item) {
+            if (item.x == x && item.y == y) {
                 return true;
             }
         });
@@ -253,13 +253,13 @@ var Item = function() {
     }
 
     return cls;
-}();
+} ();
 
 /**
  * Map generation class
  * @type {Map}
  */
-var Map = function() {
+var Map = function () {
     var map = new Array(),
         subMap = new Array(),
         wallChance = 10;
@@ -278,7 +278,7 @@ var Map = function() {
         /**
          * Generate the map
          */
-        this.generate = function() {
+        this.generate = function () {
             map = new Array();
             self.unoccupied = 0;
             for (var i = 0; i < self.cols; i++) {
@@ -305,7 +305,7 @@ var Map = function() {
          * @param x
          * @param y
          */
-        this.check = function(x, y) {
+        this.check = function (x, y) {
             return !!map[y][x]; //Reversed as Y is rows, X is cols
         }
 
@@ -313,7 +313,7 @@ var Map = function() {
          * Get the current map
          * @returns {Object}
          */
-        this.getMap = function() {
+        this.getMap = function () {
             return {
                 map: map,
                 colour: self.colour,
@@ -322,9 +322,9 @@ var Map = function() {
         }
     }
     return cls;
-}();
+} ();
 
-var Player = function() {
+var Player = function () {
     function cls(username, socket) {
         var self = this,
             luckTimer;
@@ -342,7 +342,7 @@ var Player = function() {
         this.socketId = socket.id;
         this.inventory = new Inventory();
 
-        this.initialise = function() {
+        this.initialise = function () {
             // Start to drain luck
             self.drainLuck();
             self.updatePlayer('initialise', players);
@@ -350,8 +350,8 @@ var Player = function() {
             self.updateOtherPlayers('playerJoined', self);
         };
 
-        this.drainLuck = function() {
-            luckTimer = setInterval(function() {
+        this.drainLuck = function () {
+            luckTimer = setInterval(function () {
                 self.luck--;
                 if (self.luck <= 0) {
                     self.updatePlayer('dead', true);
@@ -364,7 +364,7 @@ var Player = function() {
             }, 5000);
         };
 
-        this.updatePlayer = function(type, data) {
+        this.updatePlayer = function (type, data) {
             socket.emit('updatePlayer', {
                 socketId: self.socketId,
                 type: type,
@@ -372,7 +372,7 @@ var Player = function() {
             });
         };
 
-        this.updateOtherPlayers = function(type, data) {
+        this.updateOtherPlayers = function (type, data) {
             socket.broadcast.emit('updateOtherPlayers', {
                 socketId: self.socketId,
                 type: type,
@@ -380,17 +380,17 @@ var Player = function() {
             });
         };
 
-        this.deletePlayer = function() {
+        this.deletePlayer = function () {
             // Stop luck drain
             clearInterval(luckTimer);
             // Delete from list of players;
             delete players[self.socketId];
         };
 
-        this.checkForItems = function() {
-            if(self.inventory.isNotFull()) {
-                mapItems.forEach(function(item) {
-                    if(item.checkCoordinates(self.coords.x, self.coords.y)) {
+        this.checkForItems = function () {
+            if (self.inventory.isNotFull()) {
+                mapItems.forEach(function (item) {
+                    if (item.checkCoordinates(self.coords.x, self.coords.y)) {
                         self.inventory.addItem(item);
                         mapItems.splice(mapItems.indexOf(item), 1);
                         self.updatePlayer('updateInventory', self.inventory.get());
@@ -400,12 +400,12 @@ var Player = function() {
             }
         };
 
-        socket.on('disconnect', function() {
+        socket.on('disconnect', function () {
             self.updateOtherPlayers('disconnected', true);
             self.deletePlayer();
         });
 
-        socket.on('playerMoved', function(data) {
+        socket.on('playerMoved', function (data) {
             self.coords.x = data.coords.x;
             self.coords.y = data.coords.y;
             self.coords.vpx = data.coords.vpx;
@@ -420,7 +420,7 @@ var Player = function() {
         });
 
         var shouldHit = [];
-        socket.on('worldEvent', function(data) {
+        socket.on('worldEvent', function (data) {
             switch (data.type) {
                 case 'hit':
                     var colour = data.data.colour.toString();
@@ -435,7 +435,7 @@ var Player = function() {
                             clearInterval(luckTimer);
                         }
 
-                        setTimeout(function() {
+                        setTimeout(function () {
                             shouldHit.splice(shouldHit.indexOf(colour), 1);
                         }, 500);
                     }
@@ -443,15 +443,15 @@ var Player = function() {
                     break;
 
                 case 'pulse':
-                    socket.broadcast.emit('worldEvents', {type: data.type, data: data.data});
+                    socket.broadcast.emit('worldEvents', { type: data.type, data: data.data });
                     break;
             }
         });
 
-        socket.on('useItem', function(data) {
+        socket.on('useItem', function (data) {
             var item = self.inventory.useItem(data.slot);
 
-            if(item !== false) {
+            if (item !== false) {
                 self.updatePlayer('itemUsed', {
                     effect: (item.riskLevel <= self.luck ? item.effect.success : item.effect.failure),
                     duration: item.duration
@@ -467,7 +467,7 @@ var Player = function() {
      */
     function get_random_color() {
         var colors = [];
-        for (var i = 0; i < 3; i++ ) {
+        for (var i = 0; i < 3; i++) {
             colors.push(Math.round(Math.random() * 255));
         }
         return colors.join(',');
@@ -478,7 +478,7 @@ var Player = function() {
     }
 
     return cls;
-}();
+} ();
 
 /* =================
  * Functions
@@ -500,7 +500,7 @@ function generate_random_item() {
  * @param int interval
  */
 function spawn_map_items(interval) {
-    setTimeout(function() {
+    setTimeout(function () {
         //generate an item and broadcast it
         if (mapItems.length <= 30) {
             mapItems.push(generate_random_item());
@@ -534,9 +534,10 @@ function random(min, max) {
  */
 
 io.sockets.on('connection', function (socket) {
-    socket.on('connect', function(data) {
-        var player;
 
+    socket.on('playerConnect', function (data) {
+        console.log('connection happened...');
+        var player;
         if (data.version !== '0.0.1') {
             return;
         }
